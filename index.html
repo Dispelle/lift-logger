@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lift Logger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            padding-bottom: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        header {
+            padding: 20px 0;
+            border-bottom: 1px solid #222;
+            margin-bottom: 20px;
+            position: sticky;
+            top: 0;
+            background: #0a0a0a;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+            border-bottom-color: #00ff00;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* LOG WORKOUT FORM */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00ff00;
+        }
+
+        .exercise-row {
+            background: #1a1a1a;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            border-left: 3px solid #333;
+        }
+
+        .exercise-row.pr {
+            border-left-color: #00ff00;
+        }
+
+        .exercise-row input {
+            margin-bottom: 8px;
+        }
+
+        .remove-exercise {
+            background: #333;
+            color: #999;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .remove-exercise:hover {
+            background: #ff3333;
+            color: #fff;
+        }
+
+        button.primary {
+            width: 100%;
+            padding: 14px;
+            background: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.primary:hover {
+            background: #00dd00;
+        }
+
+        button.secondary {
+            width: 100%;
+            padding: 12px;
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        button.secondary:hover {
+            border-color: #00ff00;
+        }
+
+        /* HISTORY */
+        .session {
+            background: #1a1a1a;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-radius: 4px;
+            border-left: 3px solid #444;
+        }
+
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .session-date {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .session-muscle {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .session-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .session-btn {
+            padding: 6px 8px;
+            background: #333;
+            border: none;
+            color: #aaa;
+            font-size: 11px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .session-btn:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        .session-btn.delete:hover {
+            background: #ff3333;
+            color: #fff;
+        }
+
+        .exercise-log {
+            margin-bottom: 12px;
+        }
+
+        .exercise-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .exercise-stats {
+            font-size: 13px;
+            color: #bbb;
+        }
+
+        .pr-badge {
+            display: inline-block;
+            background: #00ff00;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        .comparison {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        .comparison.green {
+            color: #00ff00;
+        }
+
+        .comparison.red {
+            color: #ff6b6b;
+        }
+
+        /* STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 4px;
+            border-left: 3px solid #00ff00;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .exercise-history {
+            background: #1a1a1a;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+        }
+
+        .exercise-history h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .history-entry {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+            font-size: 13px;
+        }
+
+        .history-entry:last-child {
+            border-bottom: none;
+        }
+
+        .history-date {
+            color: #888;
+        }
+
+        .history-weight {
+            font-weight: 600;
+        }
+
+        .history-weight.pr {
+            color: #00ff00;
+        }
+
+        /* IMPORT/EXPORT */
+        .import-box {
+            background: #1a1a1a;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        .import-box textarea {
+            height: 200px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .note {
+            background: #222;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .success {
+            background: #1a3a1a;
+            color: #00ff00;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .error {
+            background: #3a1a1a;
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 12px;
+            }
+
+            header {
+                padding: 16px 0;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-btn {
+                font-size: 12px;
+                padding: 10px 12px;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏋️ Lift Logger</h1>
+            <p id="stats-summary"></p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('log')">LOG WORKOUT</button>
+            <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
+            <button class="tab-btn" onclick="switchTab('stats')">STATS</button>
+            <button class="tab-btn" onclick="switchTab('import')">IMPORT</button>
+        </div>
+
+        <!-- LOG WORKOUT TAB -->
+        <div id="log" class="tab-content active">
+            <form onsubmit="logWorkout(event)">
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="workoutDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Muscle Group</label>
+                    <input type="text" id="muscleGroup" placeholder="e.g., LEGS, CHEST, BACK" required>
+                </div>
+
+                <div id="exercises-container"></div>
+
+                <button type="button" class="secondary" onclick="addExerciseRow()">+ ADD EXERCISE</button>
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="primary">LOG WORKOUT</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div id="history" class="tab-content">
+            <div id="history-container"></div>
+        </div>
+
+        <!-- STATS TAB -->
+        <div id="stats" class="tab-content">
+            <div id="stats-container"></div>
+        </div>
+
+        <!-- IMPORT TAB -->
+        <div id="import" class="tab-content">
+            <div class="import-box">
+                <label>Paste Your Workout Notes</label>
+                <textarea id="importText" placeholder="Paste your 8 months of workouts here..."></textarea>
+                <button type="button" class="primary" onclick="importWorkouts()">IMPORT WORKOUTS</button>
+            </div>
+            <div id="import-status"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize date input to today
+        document.getElementById('workoutDate').valueAsDate = new Date();
+
+        // Storage key
+        const STORAGE_KEY = 'liftLoggerData';
+
+        // Load data from localStorage
+        function loadData() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        // Save data to localStorage
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        // Parse weight notation (e.g., "5p" = 225, "195" = 195, "1.5p" = 67.5)
+        function parseWeight(notation) {
+            notation = notation.trim().toLowerCase();
+            
+            // Handle "p" for plates (45 lbs each)
+            if (notation.includes('p')) {
+                const numStr = notation.replace('p', '').trim();
+                const plateCount = parseFloat(numStr);
+                return plateCount * 45;
+            }
+            
+            // Handle "+" for stacked weights
+            if (notation.includes('+')) {
+                return notation.split('+').reduce((sum, part) => {
+                    return sum + parseFloat(part.trim());
+                }, 0);
+            }
+            
+            return parseFloat(notation);
+        }
+
+        // Format weight for display
+        function formatWeight(weight) {
+            if (weight % 45 === 0 && weight >= 45) {
+                const plates = weight / 45;
+                return plates % 1 === 0 ? `${Math.floor(plates)}p` : `${plates.toFixed(1)}p`;
+            }
+            return weight.toString();
+        }
+
+        // Get previous best for an exercise
+        function getPreviousBest(exerciseName) {
+            const workouts = loadData();
+            let best = null;
+            let bestDate = null;
+
+            for (let i = workouts.length - 1; i >= 0; i--) {
+                const workout = workouts[i];
+                for (let j = 0; j < workout.exercises.length; j++) {
+                    const exercise = workout.exercises[j];
+                    if (exercise.name.toLowerCase() === exerciseName.toLowerCase()) {
+                        if (!best || exercise.weight > best) {
+                            best = exercise.weight;
+                            bestDate = workout.date;
+                        }
+                        return { weight: best, date: bestDate };
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        // Add exercise input row
+        function addExerciseRow() {
+            const container = document.getElementById('exercises-container');
+            const rowId = 'exercise-' + Date.now();
+            
+            const row = document.createElement('div');
+            row.className = 'exercise-row';
+            row.id = rowId;
+            row.innerHTML = `
+                <input type="text" class="exercise-name" placeholder="Exercise name" required>
+                <input type="text" class="exercise-weight" placeholder="Weight (e.g., 195, 5p, 1.5p, 45+25)" required>
+                <input type="number" class="exercise-reps" placeholder="Reps" min="1" required>
+                <input type="number" class="exercise-sets" placeholder="Sets (default 1)" min="1" value="1">
+                <textarea class="exercise-notes" placeholder="Notes (optional)" style="height: 60px;"></textarea>
+                <button type="button" class="remove-exercise" onclick="document.getElementById('${rowId}').remove()">Remove</button>
+            `;
+            
+            container.appendChild(row);
+        }
+
+        // Log workout
+        function logWorkout(event) {
+            event.preventDefault();
+
+            const date = document.getElementById('workoutDate').value;
+            const muscleGroup = document.getElementById('muscleGroup').value.toUpperCase();
+            const exercises = [];
+
+            document.querySelectorAll('.exercise-row').forEach(row => {
+                const name = row.querySelector('.exercise-name').value;
+                const weight = parseWeight(row.querySelector('.exercise-weight').value);
+                const reps = parseInt(row.querySelector('.exercise-reps').value);
+                const sets = parseInt(row.querySelector('.exercise-sets').value) || 1;
+                const notes = row.querySelector('.exercise-notes').value;
+
+                exercises.push({ name, weight, reps, sets, notes });
+            });
+
+            if (exercises.length === 0) {
+                alert('Add at least one exercise');
+                return;
+            }
+
+            const workouts = loadData();
+            workouts.push({ date, muscleGroup, exercises });
+            saveData(workouts);
+
+            // Reset form
+            document.getElementById('muscleGroup').value = '';
+            document.getElementById('exercises-container').innerHTML = '';
+            addExerciseRow();
+            document.getElementById('workoutDate').valueAsDate = new Date();
+
+            alert('Workout logged!');
+            displayHistory();
+            updateStats();
+        }
+
+        // Display history
+        function displayHistory() {
+            const workouts = loadData();
+            const container = document.getElementById('history-container');
+
+            if (workouts.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No workouts logged yet. Start by logging your first workout!</p></div>';
+                return;
+            }
+
+            container.innerHTML = workouts.reverse().map((workout, idx) => {
+                const exercisesHtml = workout.exercises.map(ex => {
+                    const previous = getPreviousBest(ex.name);
+                    const isPR = !previous || ex.weight > previous.weight;
+                    const comparison = previous && ex.weight !== previous.weight ? 
+                        `${ex.weight > previous.weight ? '↑' : '↓'} vs ${formatWeight(previous.weight)} (${new Date(previous.date).toLocaleDateString()})` : '';
+
+                    return `
+                        <div class="exercise-log">
+                            <div class="exercise-name">
+                                ${ex.name}
+                                ${isPR && previous ? '<span class="pr-badge">🔥 PR</span>' : ''}
+                            </div>
+                            <div class="exercise-stats">
+                                ${formatWeight(ex.weight)} × ${ex.reps} ${ex.sets > 1 ? `× ${ex.sets}` : ''}
+                                ${ex.notes ? `<br><em>${ex.notes}</em>` : ''}
+                            </div>
+                            ${comparison ? `<div class="comparison ${ex.weight > previous.weight ? 'green' : 'red'}">${comparison}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="session">
+                        <div class="session-header">
+                            <div>
+                                <div class="session-date">${new Date(workout.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+                                <div class="session-muscle">${workout.muscleGroup}</div>
+                            </div>
+                            <div class="session-actions">
+                                <button class="session-btn delete" onclick="deleteWorkout(${idx})">Delete</button>
+                            </div>
+                        </div>
+                        ${exercisesHtml}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Delete workout
+        function deleteWorkout(idx) {
+            if (confirm('Delete this workout?')) {
+                const workouts = loadData();
+                workouts.splice(idx, 1);
+                saveData(workouts);
+                displayHistory();
+                updateStats();
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            const workouts = loadData();
+            const container = document.getElementById('stats-container');
+
+            if (workouts.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Log some workouts to see stats!</p></div>';
+                return;
+            }
+
+            const totalWorkouts = workouts.length;
+            const allExercises = {};
+            const muscleGroups = {};
+
+            workouts.forEach(workout => {
+                muscleGroups[workout.muscleGroup] = (muscleGroups[workout.muscleGroup] || 0) + 1;
+                
+                workout.exercises.forEach(ex => {
+                    if (!allExercises[ex.name.toLowerCase()]) {
+                        allExercises[ex.name.toLowerCase()] = {
+                            name: ex.name,
+                            maxWeight: ex.weight,
+                            entries: []
+                        };
+                    }
+                    allExercises[ex.name.toLowerCase()].maxWeight = Math.max(allExercises[ex.name.toLowerCase()].maxWeight, ex.weight);
+                    allExercises[ex.name.toLowerCase()].entries.push({
+                        date: workout.date,
+                        weight: ex.weight,
+                        reps: ex.reps
+                    });
+                });
+            });
+
+            let html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Workouts</div>
+                        <div class="stat-value">${totalWorkouts}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unique Exercises</div>
+                        <div class="stat-value">${Object.keys(allExercises).length}</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 20px 0 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #888;">Muscle Groups</h3>
+            `;
+
+            Object.entries(muscleGroups).forEach(([group, count]) => {
+                html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 14px;"><span>${group}</span><span style="color: #00ff00; font-weight: 600;">${count}</span></div>`;
+            });
+
+            html += `<h3 style="margin: 20px 0 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #888;">Exercise Maxes</h3>`;
+
+            Object.values(allExercises).sort((a, b) => b.maxWeight - a.maxWeight).forEach(ex => {
+                const recentDate = ex.entries[ex.entries.length - 1]?.date;
+                html += `
+                    <div class="exercise-history">
+                        <h4>${ex.name}</h4>
+                        <div style="font-size: 18px; font-weight: 700; color: #00ff00; margin-bottom: 8px;">${formatWeight(ex.maxWeight)}</div>
+                        <div style="font-size: 12px; color: #888;">Last logged: ${new Date(recentDate).toLocaleDateString()}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Import workouts from text
+        function importWorkouts() {
+            const text = document.getElementById('importText').value;
+            const statusDiv = document.getElementById('import-status');
+
+            if (!text.trim()) {
+                statusDiv.innerHTML = '<div class="error">Please paste your workout notes</div>';
+                return;
+            }
+
+            try {
+                const workouts = parseWorkoutText(text);
+                const existingData = loadData();
+                const allWorkouts = [...existingData, ...workouts];
+                saveData(allWorkouts);
+
+                statusDiv.innerHTML = `<div class="success">✓ Imported ${workouts.length} workouts!</div>`;
+                document.getElementById('importText').value = '';
+                setTimeout(() => {
+                    displayHistory();
+                    updateStats();
+                }, 500);
+            } catch (e) {
+                statusDiv.innerHTML = `<div class="error">Error: ${e.message}</div>`;
+            }
+        }
+
+        // Parse workout text
+        function parseWorkoutText(text) {
+            const workouts = [];
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+            let currentDate = null;
+            let currentMuscle = null;
+            let currentExercises = [];
+
+            for (let line of lines) {
+                // Check if it's a date (M/DD/YY format)
+                if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(line)) {
+                    // Save previous workout if exists
+                    if (currentDate && currentExercises.length > 0) {
+                        workouts.push({
+                            date: formatDateString(currentDate),
+                            muscleGroup: currentMuscle || 'UNKNOWN',
+                            exercises: currentExercises
+                        });
+                    }
+                    currentDate = line;
+                    currentExercises = [];
+                } else if (line === line.toUpperCase() && line.length > 0 && !/^\d|^[a-z0-9]/i.test(line)) {
+                    // Muscle group header
+                    currentMuscle = line;
+                } else if (currentDate && line.length > 0) {
+                    // Parse exercise line
+                    const exercise = parseExerciseLine(line);
+                    if (exercise) {
+                        currentExercises.push(exercise);
+                    }
+                }
+            }
+
+            // Save last workout
+            if (currentDate && currentExercises.length > 0) {
+                workouts.push({
+                    date: formatDateString(currentDate),
+                    muscleGroup: currentMuscle || 'UNKNOWN',
+                    exercises: currentExercises
+                });
+            }
+
+            return workouts;
+        }
+
+        // Parse single exercise line
+        function parseExerciseLine(line) {
+            // Try to match pattern: "exercise name weight x reps" with optional notes
+            const match = line.match(/^([a-z\s]+?)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
+            
+            if (match) {
+                const name = match[1].trim();
+                const weight = parseWeight(match[2]);
+                const reps = parseInt(match[3]);
+                const notes = match[4].trim();
+
+                return {
+                    name,
+                    weight,
+                    reps,
+                    sets: 1,
+                    notes
+                };
+            }
+
+            return null;
+        }
+
+        // Format date string from "M/DD/YY" to YYYY-MM-DD
+        function formatDateString(dateStr) {
+            const [month, day, year] = dateStr.split('/');
+            const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+            return `${fullYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'history') {
+                displayHistory();
+            } else if (tabName === 'stats') {
+                updateStats();
+            }
+        }
+
+        // Initialize
+        addExerciseRow();
+        displayHistory();
+        updateStats();
+    </script>
+</body>
+</html>
