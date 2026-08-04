@@ -519,17 +519,18 @@
             return weight.toString();
         }
 
-        // Get previous best for an exercise
+        // Get previous best for an exercise (uses normalized name for fuzzy match)
         function getPreviousBest(exerciseName) {
             const workouts = loadData();
             let best = null;
             let bestDate = null;
+            const targetNorm = normalizeName(exerciseName);
 
             for (let i = workouts.length - 1; i >= 0; i--) {
                 const workout = workouts[i];
                 for (let j = 0; j < workout.exercises.length; j++) {
                     const exercise = workout.exercises[j];
-                    if (exercise.name.toLowerCase() === exerciseName.toLowerCase()) {
+                    if (normalizeName(exercise.name) === targetNorm) {
                         if (!best || exercise.weight > best) {
                             best = exercise.weight;
                             bestDate = workout.date;
@@ -678,15 +679,16 @@
                 muscleGroups[workout.muscleGroup] = (muscleGroups[workout.muscleGroup] || 0) + 1;
                 
                 workout.exercises.forEach(ex => {
-                    if (!allExercises[ex.name.toLowerCase()]) {
-                        allExercises[ex.name.toLowerCase()] = {
-                            name: ex.name,
+                    const key = normalizeName(ex.name); // use normalized name as key
+                    if (!allExercises[key]) {
+                        allExercises[key] = {
+                            name: ex.name, // keep original display name from first entry
                             maxWeight: ex.weight,
                             entries: []
                         };
                     }
-                    allExercises[ex.name.toLowerCase()].maxWeight = Math.max(allExercises[ex.name.toLowerCase()].maxWeight, ex.weight);
-                    allExercises[ex.name.toLowerCase()].entries.push({
+                    allExercises[key].maxWeight = Math.max(allExercises[key].maxWeight, ex.weight);
+                    allExercises[key].entries.push({
                         date: workout.date,
                         weight: ex.weight,
                         reps: ex.reps
@@ -802,16 +804,45 @@
             return workouts;
         }
 
+        // Normalize exercise name for comparison (handles "leg extensions" vs "leg extension")
+        function normalizeName(name) {
+            let n = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            // Singularize trailing 's' (extensions → extension) only for words > 4 chars
+            n = n.replace(/\b([a-z]{4,})s\b/g, '$1');
+            return n;
+        }
+
         // Parse single exercise line
         function parseExerciseLine(line) {
-            // Try to match pattern: "exercise name weight x reps" with optional notes
-            const match = line.match(/^([a-z\s]+?)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
+            // Pattern 1: "exercise name weight x reps" (e.g., "squat 5px6", "bench 275 x 8")
+            let match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
+            
+            // Pattern 2: "exercise name weight reps" no x (e.g., "squat 315 5")
+            if (!match) {
+                match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s+(\d+)(.*)$/i);
+            }
+
+            // Pattern 3: weight only, no reps (e.g., "squat 315")
+            if (!match) {
+                const m2 = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*(.*)$/i);
+                if (m2) {
+                    return {
+                        name: m2[1].trim(),
+                        weight: parseWeight(m2[2]),
+                        reps: 0,
+                        sets: 1,
+                        notes: m2[3].trim()
+                    };
+                }
+            }
             
             if (match) {
                 const name = match[1].trim();
                 const weight = parseWeight(match[2]);
                 const reps = parseInt(match[3]);
                 const notes = match[4].trim();
+
+                if (isNaN(weight) || weight <= 0) return null;
 
                 return {
                     name,
@@ -828,7 +859,12 @@
         // Format date string from "M/DD/YY" to YYYY-MM-DD
         function formatDateString(dateStr) {
             const [month, day, year] = dateStr.split('/');
-            const fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+            let fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+            const candidate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+            // If parsed date is more than 30 days in the future, roll back 1 year
+            if (candidate > new Date(Date.now() + 30 * 86400000)) {
+                fullYear -= 1;
+            }
             return `${fullYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         }
 
