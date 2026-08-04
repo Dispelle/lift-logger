@@ -565,17 +565,18 @@
     </div>
 
     <script>
-        // Auto-update check: fetch version.json, reload if build has changed
-        const CURRENT_BUILD = '20260804-1920';
-        fetch('version.json?t=' + Date.now())
-            .then(r => r.json())
-            .then(data => {
-                if (data.build && data.build !== CURRENT_BUILD) {
-                    // New version available — hard reload to bypass cache
-                    window.location.reload(true);
-                }
-            })
-            .catch(() => {}); // silent fail if offline
+        // Auto-update check: wait 5s then fetch version.json, reload if build has changed
+        const CURRENT_BUILD = '20260804-1921';
+        setTimeout(() => {
+            fetch('version.json?t=' + Date.now())
+                .then(r => r.json())
+                .then(data => {
+                    if (data.build && data.build !== CURRENT_BUILD) {
+                        window.location.reload(true);
+                    }
+                })
+                .catch(() => {}); // silent fail if offline
+        }, 5000); // 5s delay so GitHub Pages CDN has time to propagate before we reload
 
         // Initialize date input to today
         document.getElementById('workoutDate').valueAsDate = new Date();
