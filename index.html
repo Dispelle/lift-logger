@@ -21,26 +21,86 @@
             padding-bottom: 20px;
         }
 
-        @keyframes spin {
+        @keyframes rotate-slow {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to   { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        @keyframes rotate-rev {
             from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            to   { transform: rotate(-360deg); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.03; }
+            50%       { opacity: 0.07; }
         }
 
+        /* Big plate ring — top right */
         body::before {
             content: '';
             position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 600px;
-            height: 600px;
-            margin: -300px 0 0 -300px;
+            top: -60px;
+            right: -60px;
+            width: 340px;
+            height: 340px;
             border-radius: 50%;
-            background: conic-gradient(red, orange, yellow, green, blue, indigo, violet, red);
-            opacity: 0.07;
-            animation: spin 8s linear infinite;
+            border: 32px solid rgba(0, 255, 80, 0.06);
+            box-shadow: inset 0 0 0 12px rgba(0,255,80,0.03),
+                        inset 0 0 0 22px rgba(0,255,80,0.015);
+            animation: rotate-rev 25s linear infinite, pulse-glow 6s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
         }
+
+        /* Second plate ring — bottom left */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -80px;
+            left: -80px;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 24px solid rgba(255, 255, 255, 0.04);
+            box-shadow: inset 0 0 0 10px rgba(255,255,255,0.015);
+            animation: rotate-rev 18s linear infinite reverse;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Barbell bar — horizontal accent across middle */
+        .gym-bar {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px;
+            height: 8px;
+            background: linear-gradient(
+                to right,
+                transparent 0%,
+                rgba(255,255,255,0.04) 15%,
+                rgba(255,255,255,0.06) 30%,
+                rgba(255,255,255,0.06) 70%,
+                rgba(255,255,255,0.04) 85%,
+                transparent 100%
+            );
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 0;
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+        .gym-bar::before, .gym-bar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 8px solid rgba(255,255,255,0.05);
+        }
+        .gym-bar::before { left: -50px; }
+        .gym-bar::after  { right: -50px; }
 
         .container { position: relative; z-index: 1; }
 
@@ -440,13 +500,14 @@
     </style>
 </head>
 <body>
+    <div class="gym-bar"></div>
     <div class="container">
         <header>
             <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:#444; margin-top:4px;">v1.3 · Aug 4, 2026 🌈</p>
+                    <p style="font-size:10px; color:#444; margin-top:4px;">v1.4 · Aug 4, 2026</p>
                 </div>
                 <button onclick="location.reload()" style="background:none; border:1px solid #333; color:#666; border-radius:4px; padding:6px 10px; font-size:18px; cursor:pointer; margin-top:4px;" title="Reload app">↻</button>
             </div>
@@ -505,7 +566,7 @@
 
     <script>
         // Auto-update check: fetch version.json, reload if build has changed
-        const CURRENT_BUILD = '20260804-1915';
+        const CURRENT_BUILD = '20260804-1920';
         fetch('version.json?t=' + Date.now())
             .then(r => r.json())
             .then(data => {
