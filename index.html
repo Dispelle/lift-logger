@@ -481,6 +481,18 @@
     </div>
 
     <script>
+        // Auto-update check: fetch version.json, reload if build has changed
+        const CURRENT_BUILD = '20260804-1913';
+        fetch('version.json?t=' + Date.now())
+            .then(r => r.json())
+            .then(data => {
+                if (data.build && data.build !== CURRENT_BUILD) {
+                    // New version available — hard reload to bypass cache
+                    window.location.reload(true);
+                }
+            })
+            .catch(() => {}); // silent fail if offline
+
         // Initialize date input to today
         document.getElementById('workoutDate').valueAsDate = new Date();
 
