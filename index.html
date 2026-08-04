@@ -1,13 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="theme-dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Lift Logger</title>
+    <!-- Fix 1: Apply theme immediately before CSS to prevent flash -->
+    <script>
+        (function() {
+            var saved = localStorage.getItem('liftLoggerTheme') || 'dark';
+            document.documentElement.className = 'theme-' + saved;
+        })();
+    </script>
     <style>
+        /* Fix 1: CSS variables for theming */
+        :root {
+            --bg: #0a0a0a;
+            --bg2: #1a1a1a;
+            --bg3: #222;
+            --border: #333;
+            --text: #fff;
+            --text2: #aaa;
+            --text3: #888;
+            --accent: #00ff00;
+            --header-bg: #0a0a0a;
+        }
+        html.theme-light {
+            --bg: #f5f5f5;
+            --bg2: #e8e8e8;
+            --bg3: #ddd;
+            --border: #ccc;
+            --text: #111;
+            --text2: #444;
+            --text3: #666;
+            --accent: #009900;
+            --header-bg: #f5f5f5;
+        }
+        html.theme-rainbow {
+            --bg: #0a0010;
+            --bg2: #150025;
+            --bg3: #1a0030;
+            --border: #440066;
+            --text: #fff;
+            --text2: #dd88ff;
+            --text3: #aa55cc;
+            --accent: #ff00ff;
+            --header-bg: #0a0010;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,8 +60,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0a;
-            color: #fff;
+            background: var(--bg);
+            color: var(--text);
             padding-bottom: 20px;
         }
 
@@ -32,6 +76,10 @@
         @keyframes pulse-glow {
             0%, 100% { opacity: 0.03; }
             50%       { opacity: 0.07; }
+        }
+        @keyframes rainbow-spin {
+            0%   { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
 
         /* Big plate ring — top right */
@@ -65,6 +113,15 @@
             animation: rotate-rev 18s linear infinite reverse;
             pointer-events: none;
             z-index: 0;
+        }
+
+        html.theme-rainbow body::before {
+            border-color: rgba(255, 0, 255, 0.2);
+            animation: rotate-rev 25s linear infinite, rainbow-spin 3s linear infinite;
+        }
+        html.theme-rainbow body::after {
+            border-color: rgba(0, 255, 255, 0.15);
+            animation: rotate-rev 18s linear infinite reverse, rainbow-spin 2s linear infinite;
         }
 
         /* Barbell bar — horizontal accent across middle */
@@ -112,11 +169,11 @@
 
         header {
             padding: 20px 0;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid var(--border);
             margin-bottom: 20px;
             position: sticky;
             top: 0;
-            background: #0a0a0a;
+            background: var(--header-bg);
             z-index: 100;
         }
 
@@ -124,37 +181,40 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 8px;
+            color: var(--text);
         }
 
         header p {
             font-size: 12px;
-            color: #888;
+            color: var(--text3);
         }
 
         .tabs {
             display: flex;
-            gap: 8px;
+            gap: 4px;
             margin-bottom: 20px;
-            border-bottom: 1px solid #222;
+            border-bottom: 1px solid var(--border);
             padding-bottom: 0;
+            overflow-x: auto;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px 16px;
+            padding: 12px 8px;
             background: none;
             border: none;
-            color: #888;
-            font-size: 14px;
+            color: var(--text3);
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             border-bottom: 2px solid transparent;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .tab-btn.active {
-            color: #fff;
-            border-bottom-color: #00ff00;
+            color: var(--text);
+            border-bottom-color: var(--accent);
         }
 
         .tab-content {
@@ -174,38 +234,39 @@
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: #aaa;
+            color: var(--text2);
             margin-bottom: 6px;
             text-transform: uppercase;
         }
 
+        /* Fix 12: font-size 16px prevents iOS zoom on focus */
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: #fff;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            color: var(--text);
             border-radius: 4px;
             font-family: inherit;
-            font-size: 14px;
+            font-size: 16px;
             transition: border-color 0.2s;
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #00ff00;
+            border-color: var(--accent);
         }
 
         .exercise-row {
-            background: #1a1a1a;
+            background: var(--bg2);
             padding: 12px;
             margin-bottom: 12px;
             border-radius: 4px;
-            border-left: 3px solid #333;
+            border-left: 3px solid var(--border);
         }
 
         .exercise-row.pr {
-            border-left-color: #00ff00;
+            border-left-color: var(--accent);
         }
 
         .exercise-row input {
@@ -213,8 +274,8 @@
         }
 
         .remove-exercise {
-            background: #333;
-            color: #999;
+            background: var(--bg3);
+            color: var(--text3);
             border: none;
             padding: 8px 12px;
             border-radius: 4px;
@@ -232,7 +293,7 @@
         button.primary {
             width: 100%;
             padding: 14px;
-            background: #00ff00;
+            background: var(--accent);
             color: #000;
             border: none;
             border-radius: 4px;
@@ -243,15 +304,15 @@
         }
 
         button.primary:hover {
-            background: #00dd00;
+            opacity: 0.85;
         }
 
         button.secondary {
             width: 100%;
             padding: 12px;
-            background: #1a1a1a;
-            color: #fff;
-            border: 1px solid #333;
+            background: var(--bg2);
+            color: var(--text);
+            border: 1px solid var(--border);
             border-radius: 4px;
             font-weight: 600;
             font-size: 14px;
@@ -261,12 +322,12 @@
         }
 
         button.secondary:hover {
-            border-color: #00ff00;
+            border-color: var(--accent);
         }
 
         /* HISTORY */
         .session {
-            background: #1a1a1a;
+            background: var(--bg2);
             padding: 16px;
             margin-bottom: 16px;
             border-radius: 4px;
@@ -283,11 +344,12 @@
         .session-date {
             font-weight: 700;
             font-size: 16px;
+            color: var(--text);
         }
 
         .session-muscle {
             font-size: 12px;
-            color: #888;
+            color: var(--text3);
             text-transform: uppercase;
             font-weight: 600;
         }
@@ -299,9 +361,9 @@
 
         .session-btn {
             padding: 6px 8px;
-            background: #333;
+            background: var(--bg3);
             border: none;
-            color: #aaa;
+            color: var(--text2);
             font-size: 11px;
             border-radius: 3px;
             cursor: pointer;
@@ -310,7 +372,7 @@
 
         .session-btn:hover {
             background: #444;
-            color: #fff;
+            color: var(--text);
         }
 
         .session-btn.delete:hover {
@@ -326,16 +388,17 @@
             font-weight: 600;
             margin-bottom: 4px;
             font-size: 14px;
+            color: var(--text);
         }
 
         .exercise-stats {
             font-size: 13px;
-            color: #bbb;
+            color: var(--text2);
         }
 
         .pr-badge {
             display: inline-block;
-            background: #00ff00;
+            background: var(--accent);
             color: #000;
             padding: 2px 6px;
             border-radius: 3px;
@@ -346,12 +409,12 @@
 
         .comparison {
             font-size: 11px;
-            color: #888;
+            color: var(--text3);
             margin-top: 4px;
         }
 
         .comparison.green {
-            color: #00ff00;
+            color: var(--accent);
         }
 
         .comparison.red {
@@ -367,15 +430,15 @@
         }
 
         .stat-card {
-            background: #1a1a1a;
+            background: var(--bg2);
             padding: 16px;
             border-radius: 4px;
-            border-left: 3px solid #00ff00;
+            border-left: 3px solid var(--accent);
         }
 
         .stat-label {
             font-size: 11px;
-            color: #888;
+            color: var(--text3);
             text-transform: uppercase;
             font-weight: 600;
             margin-bottom: 4px;
@@ -384,10 +447,11 @@
         .stat-value {
             font-size: 24px;
             font-weight: 700;
+            color: var(--text);
         }
 
         .exercise-history {
-            background: #1a1a1a;
+            background: var(--bg2);
             padding: 16px;
             margin-bottom: 12px;
             border-radius: 4px;
@@ -397,13 +461,14 @@
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 12px;
+            color: var(--text);
         }
 
         .history-entry {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid var(--border);
             font-size: 13px;
         }
 
@@ -412,20 +477,21 @@
         }
 
         .history-date {
-            color: #888;
+            color: var(--text3);
         }
 
         .history-weight {
             font-weight: 600;
+            color: var(--text);
         }
 
         .history-weight.pr {
-            color: #00ff00;
+            color: var(--accent);
         }
 
         /* IMPORT/EXPORT */
         .import-box {
-            background: #1a1a1a;
+            background: var(--bg2);
             padding: 16px;
             border-radius: 4px;
             margin-bottom: 16px;
@@ -439,11 +505,11 @@
         }
 
         .note {
-            background: #222;
+            background: var(--bg3);
             padding: 12px;
             border-radius: 4px;
             font-size: 12px;
-            color: #888;
+            color: var(--text3);
             line-height: 1.5;
             margin-bottom: 12px;
         }
@@ -464,6 +530,46 @@
             margin-bottom: 12px;
         }
 
+        /* Fix 13: DATA TAB */
+        .data-section {
+            background: var(--bg2);
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+        .data-section h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text2);
+            margin-bottom: 12px;
+        }
+        .data-stats {
+            font-size: 14px;
+            color: var(--text3);
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+        .data-stats strong {
+            color: var(--text);
+        }
+
+        /* Theme toggle button */
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text3);
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .theme-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
         @media (max-width: 480px) {
             .container {
                 padding: 0 12px;
@@ -482,15 +588,15 @@
             }
 
             .tab-btn {
-                font-size: 12px;
-                padding: 10px 12px;
+                font-size: 10px;
+                padding: 10px 6px;
             }
         }
 
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: #666;
+            color: var(--text3);
         }
 
         .empty-state p {
@@ -507,17 +613,24 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:#444; margin-top:4px;">v1.4 · Aug 4, 2026</p>
+                    <p style="font-size:10px; color:#444; margin-top:4px;">v2.0 · Aug 4, 2026</p>
                 </div>
-                <button onclick="location.reload()" style="background:none; border:1px solid #333; color:#666; border-radius:4px; padding:6px 10px; font-size:18px; cursor:pointer; margin-top:4px;" title="Reload app">↻</button>
+                <!-- Fix 1: theme toggle + Fix 5: removed auto-reload, kept manual button -->
+                <div style="display:flex; gap:4px; margin-top:4px;">
+                    <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" title="Toggle theme">🌙</button>
+                    <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--text3); border-radius:4px; padding:6px 10px; font-size:18px; cursor:pointer;" title="Reload app">↻</button>
+                </div>
             </div>
         </header>
 
+        <!-- Fix 6: switchTab(tabName, this) on all buttons -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('log')">LOG WORKOUT</button>
-            <button class="tab-btn" onclick="switchTab('history')">HISTORY</button>
-            <button class="tab-btn" onclick="switchTab('stats')">STATS</button>
-            <button class="tab-btn" onclick="switchTab('import')">IMPORT</button>
+            <button class="tab-btn active" onclick="switchTab('log', this)">LOG</button>
+            <button class="tab-btn" onclick="switchTab('history', this)">HISTORY</button>
+            <button class="tab-btn" onclick="switchTab('stats', this)">STATS</button>
+            <button class="tab-btn" onclick="switchTab('import', this)">IMPORT</button>
+            <!-- Fix 13: DATA tab -->
+            <button class="tab-btn" onclick="switchTab('data', this)">DATA</button>
         </div>
 
         <!-- LOG WORKOUT TAB -->
@@ -562,129 +675,206 @@
             </div>
             <div id="import-status"></div>
         </div>
+
+        <!-- Fix 13: DATA TAB -->
+        <div id="data" class="tab-content">
+            <div class="data-section">
+                <h3>📦 Data Stats</h3>
+                <div id="data-stats" class="data-stats">Loading…</div>
+            </div>
+            <div class="data-section">
+                <h3>⬇ Export Backup</h3>
+                <p style="font-size:13px; color:var(--text3); margin-bottom:12px;">Download all your workout data as a JSON file.</p>
+                <button type="button" class="primary" onclick="exportData()">EXPORT JSON BACKUP</button>
+            </div>
+            <div class="data-section">
+                <h3>⬆ Restore from Backup</h3>
+                <p style="font-size:13px; color:var(--text3); margin-bottom:12px;">Select a previously exported JSON file to restore.</p>
+                <input type="file" id="restore-file" accept=".json" onchange="importDataFile(this)">
+                <div id="data-status" style="margin-top:12px;"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Auto-update check: wait 5s then fetch version.json, reload if build has changed
-        const CURRENT_BUILD = '20260804-1921';
-        setTimeout(() => {
-            fetch('version.json?t=' + Date.now())
-                .then(r => r.json())
-                .then(data => {
-                    if (data.build && data.build !== CURRENT_BUILD) {
-                        window.location.reload(true);
-                    }
-                })
-                .catch(() => {}); // silent fail if offline
-        }, 5000); // 5s delay so GitHub Pages CDN has time to propagate before we reload
+        // ─── FIX 1: THEME ──────────────────────────────────────────────────────────
+        const THEMES = ['dark', 'light', 'rainbow'];
+        const THEME_ICONS = { dark: '🌙', light: '☀️', rainbow: '🌈' };
 
-        // Initialize date input to today
-        document.getElementById('workoutDate').valueAsDate = new Date();
+        function getTheme() {
+            return localStorage.getItem('liftLoggerTheme') || 'dark';
+        }
 
-        // Storage key
-        const STORAGE_KEY = 'liftLoggerData';
+        function applyTheme(theme) {
+            document.documentElement.className = 'theme-' + theme;
+            localStorage.setItem('liftLoggerTheme', theme);
+            var btn = document.getElementById('theme-btn');
+            if (btn) btn.textContent = THEME_ICONS[theme] || '🌙';
+        }
 
-        // Load data from localStorage
+        function cycleTheme() {
+            var current = getTheme();
+            var next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+            applyTheme(next);
+        }
+
+        // Sync button icon on load (theme class already applied by inline head script)
+        applyTheme(getTheme());
+
+        // ─── FIX 2: STORAGE (safe load/save with backup) ──────────────────────────
+        var STORAGE_KEY = 'liftLoggerData';
+        var BACKUP_KEY = 'liftLoggerData_bak';
+
         function loadData() {
-            const data = localStorage.getItem(STORAGE_KEY);
-            return data ? JSON.parse(data) : [];
-        }
-
-        // Save data to localStorage
-        function saveData(data) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        }
-
-        // Parse weight notation (e.g., "5p" = 225, "195" = 195, "1.5p" = 67.5)
-        function parseWeight(notation) {
-            notation = notation.trim().toLowerCase();
-            
-            // Handle "p" for plates (45 lbs each)
-            if (notation.includes('p')) {
-                const numStr = notation.replace('p', '').trim();
-                const plateCount = parseFloat(numStr);
-                return plateCount * 45;
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (e) {
+                console.warn('Primary data corrupt, trying backup:', e);
+                try {
+                    var bak = localStorage.getItem(BACKUP_KEY);
+                    if (bak) return JSON.parse(bak);
+                } catch (e2) {
+                    console.error('Backup also failed:', e2);
+                }
             }
-            
-            // Handle "+" for stacked weights
-            if (notation.includes('+')) {
-                return notation.split('+').reduce((sum, part) => {
-                    return sum + parseFloat(part.trim());
+            return [];
+        }
+
+        function saveData(data) {
+            // Prevent overwriting real data with empty array
+            if (!data || data.length === 0) {
+                var existing = loadData();
+                if (existing.length > 0) return;
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            // Also write backup
+            localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
+        }
+
+        // ─── FIX 8: PARSEWEIGHT (handles "2p+10" correctly) ──────────────────────
+        function parseWeight(notation) {
+            if (!notation) return 0;
+            notation = String(notation).trim().toLowerCase();
+            // Handle combined plate+pounds e.g. "2p+10" = 90+10 = 100
+            if (notation.includes('p') && notation.includes('+')) {
+                var parts = notation.split('+');
+                return parts.reduce(function(sum, part) {
+                    part = part.trim();
+                    if (part.includes('p')) return sum + (parseFloat(part.replace('p', '')) || 0) * 45;
+                    return sum + (parseFloat(part) || 0);
                 }, 0);
             }
-            
-            return parseFloat(notation);
+            if (notation.includes('p')) {
+                return (parseFloat(notation.replace('p', '')) || 0) * 45;
+            }
+            if (notation.includes('+')) {
+                return notation.split('+').reduce(function(sum, p) {
+                    return sum + (parseFloat(p.trim()) || 0);
+                }, 0);
+            }
+            return parseFloat(notation) || 0;
         }
 
-        // Format weight for display
+        // Fix 2: formatWeight guard for null/NaN
         function formatWeight(weight) {
+            if (!weight || isNaN(weight)) return '?';
             if (weight % 45 === 0 && weight >= 45) {
-                const plates = weight / 45;
-                return plates % 1 === 0 ? `${Math.floor(plates)}p` : `${plates.toFixed(1)}p`;
+                var plates = weight / 45;
+                return plates % 1 === 0 ? Math.floor(plates) + 'p' : plates.toFixed(1) + 'p';
             }
             return weight.toString();
         }
 
-        // Get previous best for an exercise (uses normalized name for fuzzy match)
-        function getPreviousBest(exerciseName) {
-            const workouts = loadData();
-            let best = null;
-            let bestDate = null;
-            const targetNorm = normalizeName(exerciseName);
-
-            for (let i = workouts.length - 1; i >= 0; i--) {
-                const workout = workouts[i];
-                for (let j = 0; j < workout.exercises.length; j++) {
-                    const exercise = workout.exercises[j];
-                    if (normalizeName(exercise.name) === targetNorm) {
-                        if (!best || exercise.weight > best) {
-                            best = exercise.weight;
-                            bestDate = workout.date;
-                        }
-                        return { weight: best, date: bestDate };
-                    }
-                }
-            }
-            
-            return null;
+        // ─── FIX 10: XSS ESCAPE HELPER ────────────────────────────────────────────
+        function esc(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        // Add exercise input row
+        // ─── FIX 9: DATE HELPERS (local time, no UTC shift) ──────────────────────
+        function localDateStr(isoStr) {
+            var parts = isoStr.split('-');
+            return new Date(+parts[0], +parts[1] - 1, +parts[2])
+                .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+
+        function todayISO() {
+            var d = new Date();
+            return d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0');
+        }
+
+        // ─── FIX 11: EXERCISE ROWS (counter instead of Date.now) ─────────────────
+        var _rowCounter = 0;
         function addExerciseRow() {
-            const container = document.getElementById('exercises-container');
-            const rowId = 'exercise-' + Date.now();
-            
-            const row = document.createElement('div');
+            var container = document.getElementById('exercises-container');
+            var rowId = 'exercise-' + (++_rowCounter);
+
+            var row = document.createElement('div');
             row.className = 'exercise-row';
             row.id = rowId;
-            row.innerHTML = `
-                <input type="text" class="exercise-name" placeholder="Exercise name" required>
-                <input type="text" class="exercise-weight" placeholder="Weight (e.g., 195, 5p, 1.5p, 45+25)" required>
-                <input type="number" class="exercise-reps" placeholder="Reps" min="1" required>
-                <input type="number" class="exercise-sets" placeholder="Sets (default 1)" min="1" value="1">
-                <textarea class="exercise-notes" placeholder="Notes (optional)" style="height: 60px;"></textarea>
-                <button type="button" class="remove-exercise" onclick="document.getElementById('${rowId}').remove()">Remove</button>
-            `;
-            
+            row.innerHTML =
+                '<input type="text" class="exercise-name" placeholder="Exercise name" required>' +
+                '<input type="text" class="exercise-weight" placeholder="Weight (e.g., 195, 5p, 1.5p, 45+25, 2p+10)" required>' +
+                '<input type="number" class="exercise-reps" placeholder="Reps" min="1" required>' +
+                '<input type="number" class="exercise-sets" placeholder="Sets (default 1)" min="1" value="1">' +
+                '<textarea class="exercise-notes" placeholder="Notes (optional)" style="height: 60px;"></textarea>' +
+                '<button type="button" class="remove-exercise" onclick="document.getElementById(\'' + rowId + '\').remove()">Remove</button>';
+
             container.appendChild(row);
         }
 
-        // Log workout
+        // ─── NORMALIZE EXERCISE NAME ───────────────────────────────────────────────
+        function normalizeName(name) {
+            if (!name || typeof name !== 'string') return '';
+            var n = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            n = n.replace(/\b([a-z]{4,})s\b/g, '$1');
+            return n;
+        }
+
+        // ─── FIX 4: getPreviousBest (no early return, excludes self by id) ────────
+        function getPreviousBest(exerciseName, excludeWorkoutId) {
+            var workouts = loadData();
+            var targetNorm = normalizeName(exerciseName);
+            var best = null;
+            var bestDate = null;
+            for (var i = 0; i < workouts.length; i++) {
+                var workout = workouts[i];
+                if (workout.id === excludeWorkoutId) continue;
+                for (var j = 0; j < workout.exercises.length; j++) {
+                    var ex = workout.exercises[j];
+                    if (normalizeName(ex.name) === targetNorm) {
+                        if (best === null || ex.weight > best) {
+                            best = ex.weight;
+                            bestDate = workout.date;
+                        }
+                    }
+                }
+            }
+            return best !== null ? { weight: best, date: bestDate } : null;
+        }
+
+        // ─── LOG WORKOUT ───────────────────────────────────────────────────────────
         function logWorkout(event) {
             event.preventDefault();
 
-            const date = document.getElementById('workoutDate').value;
-            const muscleGroup = document.getElementById('muscleGroup').value.toUpperCase();
-            const exercises = [];
+            var date = document.getElementById('workoutDate').value;
+            var muscleGroup = document.getElementById('muscleGroup').value.toUpperCase();
+            var exercises = [];
 
-            document.querySelectorAll('.exercise-row').forEach(row => {
-                const name = row.querySelector('.exercise-name').value;
-                const weight = parseWeight(row.querySelector('.exercise-weight').value);
-                const reps = parseInt(row.querySelector('.exercise-reps').value);
-                const sets = parseInt(row.querySelector('.exercise-sets').value) || 1;
-                const notes = row.querySelector('.exercise-notes').value;
-
-                exercises.push({ name, weight, reps, sets, notes });
+            document.querySelectorAll('.exercise-row').forEach(function(row) {
+                var name = row.querySelector('.exercise-name').value;
+                var weight = parseWeight(row.querySelector('.exercise-weight').value);
+                var reps = parseInt(row.querySelector('.exercise-reps').value);
+                var sets = parseInt(row.querySelector('.exercise-sets').value) || 1;
+                var notes = row.querySelector('.exercise-notes').value;
+                exercises.push({ name: name, weight: weight, reps: reps, sets: sets, notes: notes });
             });
 
             if (exercises.length === 0) {
@@ -692,155 +882,155 @@
                 return;
             }
 
-            const workouts = loadData();
-            workouts.push({ date, muscleGroup, exercises });
+            var workouts = loadData();
+            // Fix 3: stable id on each workout
+            var newWorkout = {
+                id: Date.now() + '-' + Math.random().toString(36).slice(2),
+                date: date,
+                muscleGroup: muscleGroup,
+                exercises: exercises
+            };
+            workouts.push(newWorkout);
             saveData(workouts);
 
             // Reset form
             document.getElementById('muscleGroup').value = '';
             document.getElementById('exercises-container').innerHTML = '';
+            _rowCounter = 0;
             addExerciseRow();
-            document.getElementById('workoutDate').valueAsDate = new Date();
+            // Fix 9: set date with local time
+            document.getElementById('workoutDate').value = todayISO();
 
             alert('Workout logged!');
             displayHistory();
             updateStats();
         }
 
-        // Display history
+        // ─── DISPLAY HISTORY ───────────────────────────────────────────────────────
         function displayHistory() {
-            const workouts = loadData();
-            const container = document.getElementById('history-container');
+            var workouts = loadData();
+            var container = document.getElementById('history-container');
 
             if (workouts.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>No workouts logged yet. Start by logging your first workout!</p></div>';
                 return;
             }
 
-            container.innerHTML = workouts.reverse().map((workout, idx) => {
-                const exercisesHtml = workout.exercises.map(ex => {
-                    const previous = getPreviousBest(ex.name);
-                    const isPR = !previous || ex.weight > previous.weight;
-                    const comparison = previous && ex.weight !== previous.weight ? 
-                        `${ex.weight > previous.weight ? '↑' : '↓'} vs ${formatWeight(previous.weight)} (${new Date(previous.date).toLocaleDateString()})` : '';
+            // Fix 3: use workout.id for delete, not array index on reversed array
+            var reversed = workouts.slice().reverse();
 
-                    return `
-                        <div class="exercise-log">
-                            <div class="exercise-name">
-                                ${ex.name}
-                                ${isPR && previous ? '<span class="pr-badge">🔥 PR</span>' : ''}
-                            </div>
-                            <div class="exercise-stats">
-                                ${formatWeight(ex.weight)} × ${ex.reps} ${ex.sets > 1 ? `× ${ex.sets}` : ''}
-                                ${ex.notes ? `<br><em>${ex.notes}</em>` : ''}
-                            </div>
-                            ${comparison ? `<div class="comparison ${ex.weight > previous.weight ? 'green' : 'red'}">${comparison}</div>` : ''}
-                        </div>
-                    `;
+            container.innerHTML = reversed.map(function(workout) {
+                var exercisesHtml = workout.exercises.map(function(ex) {
+                    // Fix 4: pass workout.id as second arg
+                    var previous = getPreviousBest(ex.name, workout.id);
+                    var isPR = !previous || ex.weight > previous.weight;
+                    var comparison = previous && ex.weight !== previous.weight
+                        ? (ex.weight > previous.weight ? '↑' : '↓') + ' vs ' + formatWeight(previous.weight) + ' (' + localDateStr(previous.date) + ')'
+                        : '';
+                    var compClass = (previous && ex.weight > previous.weight) ? 'green' : 'red';
+
+                    return '<div class="exercise-log">' +
+                        '<div class="exercise-name">' + esc(ex.name) +
+                        (isPR && previous ? ' <span class="pr-badge">🔥 PR</span>' : '') +
+                        '</div>' +
+                        '<div class="exercise-stats">' +
+                        esc(formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps || 0)) +
+                        (ex.sets > 1 ? ' × ' + esc(String(ex.sets)) : '') +
+                        (ex.notes ? '<br><em>' + esc(ex.notes) + '</em>' : '') +
+                        '</div>' +
+                        (comparison ? '<div class="comparison ' + compClass + '">' + esc(comparison) + '</div>' : '') +
+                        '</div>';
                 }).join('');
 
-                return `
-                    <div class="session">
-                        <div class="session-header">
-                            <div>
-                                <div class="session-date">${new Date(workout.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</div>
-                                <div class="session-muscle">${workout.muscleGroup}</div>
-                            </div>
-                            <div class="session-actions">
-                                <button class="session-btn delete" onclick="deleteWorkout(${idx})">Delete</button>
-                            </div>
-                        </div>
-                        ${exercisesHtml}
-                    </div>
-                `;
+                // Fix 3: pass workout.id (escaped) to deleteWorkout
+                var safeId = esc(workout.id || '');
+                return '<div class="session">' +
+                    '<div class="session-header">' +
+                    '<div>' +
+                    '<div class="session-date">' + esc(localDateStr(workout.date)) + '</div>' +
+                    '<div class="session-muscle">' + esc(workout.muscleGroup) + '</div>' +
+                    '</div>' +
+                    '<div class="session-actions">' +
+                    '<button class="session-btn delete" onclick="deleteWorkout(\'' + safeId + '\')">Delete</button>' +
+                    '</div>' +
+                    '</div>' +
+                    exercisesHtml +
+                    '</div>';
             }).join('');
         }
 
-        // Delete workout
-        function deleteWorkout(idx) {
+        // Fix 3: deleteWorkout filters by id, not splice by index
+        function deleteWorkout(id) {
             if (confirm('Delete this workout?')) {
-                const workouts = loadData();
-                workouts.splice(idx, 1);
+                var workouts = loadData();
+                if (id) {
+                    workouts = workouts.filter(function(w) { return w.id !== id; });
+                }
                 saveData(workouts);
                 displayHistory();
                 updateStats();
             }
         }
 
-        // Update stats
+        // ─── UPDATE STATS ──────────────────────────────────────────────────────────
         function updateStats() {
-            const workouts = loadData();
-            const container = document.getElementById('stats-container');
+            var workouts = loadData();
+            var container = document.getElementById('stats-container');
+            var summary = document.getElementById('stats-summary');
 
             if (workouts.length === 0) {
                 container.innerHTML = '<div class="empty-state"><p>Log some workouts to see stats!</p></div>';
+                if (summary) summary.textContent = '';
                 return;
             }
 
-            const totalWorkouts = workouts.length;
-            const allExercises = {};
-            const muscleGroups = {};
+            var totalWorkouts = workouts.length;
+            var allExercises = {};
+            var muscleGroups = {};
 
-            workouts.forEach(workout => {
+            workouts.forEach(function(workout) {
                 muscleGroups[workout.muscleGroup] = (muscleGroups[workout.muscleGroup] || 0) + 1;
-                
-                workout.exercises.forEach(ex => {
-                    const key = normalizeName(ex.name); // use normalized name as key
+                workout.exercises.forEach(function(ex) {
+                    var key = normalizeName(ex.name);
                     if (!allExercises[key]) {
-                        allExercises[key] = {
-                            name: ex.name, // keep original display name from first entry
-                            maxWeight: ex.weight,
-                            entries: []
-                        };
+                        allExercises[key] = { name: ex.name, maxWeight: ex.weight, entries: [] };
                     }
                     allExercises[key].maxWeight = Math.max(allExercises[key].maxWeight, ex.weight);
-                    allExercises[key].entries.push({
-                        date: workout.date,
-                        weight: ex.weight,
-                        reps: ex.reps
-                    });
+                    allExercises[key].entries.push({ date: workout.date, weight: ex.weight, reps: ex.reps });
                 });
             });
 
-            let html = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total Workouts</div>
-                        <div class="stat-value">${totalWorkouts}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Unique Exercises</div>
-                        <div class="stat-value">${Object.keys(allExercises).length}</div>
-                    </div>
-                </div>
+            if (summary) summary.textContent = totalWorkouts + ' workouts · ' + Object.keys(allExercises).length + ' exercises';
 
-                <h3 style="margin: 20px 0 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #888;">Muscle Groups</h3>
-            `;
+            var html = '<div class="stats-grid">' +
+                '<div class="stat-card"><div class="stat-label">Total Workouts</div><div class="stat-value">' + totalWorkouts + '</div></div>' +
+                '<div class="stat-card"><div class="stat-label">Unique Exercises</div><div class="stat-value">' + Object.keys(allExercises).length + '</div></div>' +
+                '</div>' +
+                '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text3);">Muscle Groups</h3>';
 
-            Object.entries(muscleGroups).forEach(([group, count]) => {
-                html += `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #333; font-size: 14px;"><span>${group}</span><span style="color: #00ff00; font-weight: 600;">${count}</span></div>`;
+            Object.entries(muscleGroups).forEach(function(entry) {
+                html += '<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text);">' +
+                    '<span>' + esc(entry[0]) + '</span><span style="color:var(--accent); font-weight:600;">' + entry[1] + '</span></div>';
             });
 
-            html += `<h3 style="margin: 20px 0 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; color: #888;">Exercise Maxes</h3>`;
+            html += '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text3);">Exercise Maxes</h3>';
 
-            Object.values(allExercises).sort((a, b) => b.maxWeight - a.maxWeight).forEach(ex => {
-                const recentDate = ex.entries[ex.entries.length - 1]?.date;
-                html += `
-                    <div class="exercise-history">
-                        <h4>${ex.name}</h4>
-                        <div style="font-size: 18px; font-weight: 700; color: #00ff00; margin-bottom: 8px;">${formatWeight(ex.maxWeight)}</div>
-                        <div style="font-size: 12px; color: #888;">Last logged: ${new Date(recentDate).toLocaleDateString()}</div>
-                    </div>
-                `;
+            Object.values(allExercises).sort(function(a, b) { return b.maxWeight - a.maxWeight; }).forEach(function(ex) {
+                var recentDate = ex.entries[ex.entries.length - 1] && ex.entries[ex.entries.length - 1].date;
+                html += '<div class="exercise-history">' +
+                    '<h4>' + esc(ex.name) + '</h4>' +
+                    '<div style="font-size:18px; font-weight:700; color:var(--accent); margin-bottom:8px;">' + esc(formatWeight(ex.maxWeight)) + '</div>' +
+                    '<div style="font-size:12px; color:var(--text3);">Last logged: ' + (recentDate ? esc(localDateStr(recentDate)) : 'unknown') + '</div>' +
+                    '</div>';
             });
 
             container.innerHTML = html;
         }
 
-        // Import workouts from text
+        // ─── IMPORT WORKOUTS ───────────────────────────────────────────────────────
         function importWorkouts() {
-            const text = document.getElementById('importText').value;
-            const statusDiv = document.getElementById('import-status');
+            var text = document.getElementById('importText').value;
+            var statusDiv = document.getElementById('import-status');
 
             if (!text.trim()) {
                 statusDiv.innerHTML = '<div class="error">Please paste your workout notes</div>';
@@ -848,37 +1038,38 @@
             }
 
             try {
-                const workouts = parseWorkoutText(text);
-                const existingData = loadData();
-                const allWorkouts = [...existingData, ...workouts];
+                var workouts = parseWorkoutText(text);
+                var existingData = loadData();
+                var allWorkouts = existingData.concat(workouts);
                 saveData(allWorkouts);
 
-                statusDiv.innerHTML = `<div class="success">✓ Imported ${workouts.length} workouts!</div>`;
+                statusDiv.innerHTML = '<div class="success">✓ Imported ' + workouts.length + ' workouts!</div>';
                 document.getElementById('importText').value = '';
-                setTimeout(() => {
+                setTimeout(function() {
                     displayHistory();
                     updateStats();
                 }, 500);
             } catch (e) {
-                statusDiv.innerHTML = `<div class="error">Error: ${e.message}</div>`;
+                statusDiv.innerHTML = '<div class="error">Error: ' + esc(e.message) + '</div>';
             }
         }
 
-        // Parse workout text
+        // ─── PARSE WORKOUT TEXT ────────────────────────────────────────────────────
         function parseWorkoutText(text) {
-            const workouts = [];
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+            var workouts = [];
+            var lines = text.split('\n').map(function(l) { return l.trim(); }).filter(function(l) { return l; });
 
-            let currentDate = null;
-            let currentMuscle = null;
-            let currentExercises = [];
+            var currentDate = null;
+            var currentMuscle = null;
+            var currentExercises = [];
 
-            for (let line of lines) {
-                // Check if it's a date (M/DD/YY format)
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+
                 if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(line)) {
-                    // Save previous workout if exists
                     if (currentDate && currentExercises.length > 0) {
                         workouts.push({
+                            id: Date.now() + '-' + Math.random().toString(36).slice(2),
                             date: formatDateString(currentDate),
                             muscleGroup: currentMuscle || 'UNKNOWN',
                             exercises: currentExercises
@@ -886,21 +1077,18 @@
                     }
                     currentDate = line;
                     currentExercises = [];
-                } else if (line === line.toUpperCase() && line.length > 0 && !/^\d|^[a-z0-9]/i.test(line)) {
-                    // Muscle group header
+                // Fix 7: improved muscle-group regex
+                } else if (line === line.toUpperCase() && /^[A-Z]/.test(line) && !/^\d/.test(line)) {
                     currentMuscle = line;
                 } else if (currentDate && line.length > 0) {
-                    // Parse exercise line
-                    const exercise = parseExerciseLine(line);
-                    if (exercise) {
-                        currentExercises.push(exercise);
-                    }
+                    var exercise = parseExerciseLine(line);
+                    if (exercise) currentExercises.push(exercise);
                 }
             }
 
-            // Save last workout
             if (currentDate && currentExercises.length > 0) {
                 workouts.push({
+                    id: Date.now() + '-' + Math.random().toString(36).slice(2),
                     date: formatDateString(currentDate),
                     muscleGroup: currentMuscle || 'UNKNOWN',
                     exercises: currentExercises
@@ -910,28 +1098,16 @@
             return workouts;
         }
 
-        // Normalize exercise name for comparison (handles "leg extensions" vs "leg extension")
-        function normalizeName(name) {
-            if (!name || typeof name !== 'string') return '';
-            let n = name.trim().toLowerCase().replace(/\s+/g, ' ');
-            // Singularize trailing 's' (extensions → extension) only for words > 4 chars
-            n = n.replace(/\b([a-z]{4,})s\b/g, '$1');
-            return n;
-        }
-
-        // Parse single exercise line
+        // ─── PARSE EXERCISE LINE ───────────────────────────────────────────────────
         function parseExerciseLine(line) {
-            // Pattern 1: "exercise name weight x reps" (e.g., "squat 5px6", "bench 275 x 8")
-            let match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
-            
-            // Pattern 2: "exercise name weight reps" no x (e.g., "squat 315 5")
+            var match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
+
             if (!match) {
                 match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s+(\d+)(.*)$/i);
             }
 
-            // Pattern 3: weight only, no reps (e.g., "squat 315")
             if (!match) {
-                const m2 = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*(.*)$/i);
+                var m2 = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*(.*)$/i);
                 if (m2) {
                     return {
                         name: m2[1].trim(),
@@ -942,55 +1118,103 @@
                     };
                 }
             }
-            
+
             if (match) {
-                const name = match[1].trim();
-                const weight = parseWeight(match[2]);
-                const reps = parseInt(match[3]);
-                const notes = match[4].trim();
-
-                if (isNaN(weight) || weight <= 0) return null;
-
-                return {
-                    name,
-                    weight,
-                    reps,
-                    sets: 1,
-                    notes
-                };
+                var name = match[1].trim();
+                var weight = parseWeight(match[2]);
+                var reps = parseInt(match[3]);
+                var notes = match[4].trim();
+                if (!weight || weight <= 0) return null;
+                return { name: name, weight: weight, reps: reps, sets: 1, notes: notes };
             }
 
             return null;
         }
 
-        // Format date string from "M/DD/YY" to YYYY-MM-DD
+        // ─── FORMAT DATE STRING ────────────────────────────────────────────────────
         function formatDateString(dateStr) {
-            const [month, day, year] = dateStr.split('/');
-            let fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
-            const candidate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
-            // If parsed date is more than 30 days in the future, roll back 1 year
+            var parts = dateStr.split('/');
+            var month = parts[0], day = parts[1], year = parts[2];
+            var fullYear = parseInt(year) < 50 ? 2000 + parseInt(year) : 1900 + parseInt(year);
+            var candidate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
             if (candidate > new Date(Date.now() + 30 * 86400000)) {
                 fullYear -= 1;
             }
-            return `${fullYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return fullYear + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
         }
 
-        // Switch tabs
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
+        // ─── FIX 6: switchTab with explicit btn param ──────────────────────────────
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(function(el) { el.classList.remove('active'); });
+            document.querySelectorAll('.tab-btn').forEach(function(el) { el.classList.remove('active'); });
             document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            btn.classList.add('active');
 
-            if (tabName === 'history') {
-                displayHistory();
-            } else if (tabName === 'stats') {
-                updateStats();
-            }
+            if (tabName === 'history') displayHistory();
+            else if (tabName === 'stats') updateStats();
+            else if (tabName === 'data') updateDataTab();
         }
 
-        // Initialize
+        // ─── FIX 13: DATA TAB ─────────────────────────────────────────────────────
+        function updateDataTab() {
+            var workouts = loadData();
+            var statsDiv = document.getElementById('data-stats');
+            var raw = localStorage.getItem(STORAGE_KEY) || '[]';
+            var kb = (new Blob([raw]).size / 1024).toFixed(1);
+            statsDiv.innerHTML = '<strong>' + workouts.length + '</strong> workouts stored &nbsp;·&nbsp; <strong>' + kb + ' KB</strong> used';
+        }
+
+        function exportData() {
+            var data = loadData();
+            var json = JSON.stringify(data, null, 2);
+            var blob = new Blob([json], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'liftlogger-backup-' + todayISO() + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importDataFile(input) {
+            var file = input.files[0];
+            if (!file) return;
+            var statusDiv = document.getElementById('data-status');
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var imported = JSON.parse(e.target.result);
+                    if (!Array.isArray(imported)) throw new Error('Invalid backup format — expected a JSON array');
+                    var existing = loadData();
+                    if (existing.length > 0) {
+                        if (!confirm('You have ' + existing.length + ' existing workouts. Replace with ' + imported.length + ' from backup? This will overwrite your current data.')) {
+                            input.value = '';
+                            return;
+                        }
+                    }
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(imported));
+                    localStorage.setItem(BACKUP_KEY, JSON.stringify(imported));
+                    statusDiv.innerHTML = '<div class="success">✓ Restored ' + imported.length + ' workouts from backup!</div>';
+                    updateDataTab();
+                    input.value = '';
+                } catch (err) {
+                    statusDiv.innerHTML = '<div class="error">Error: ' + esc(err.message) + '</div>';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ─── FIX 14: CROSS-TAB SYNC ───────────────────────────────────────────────
+        window.addEventListener('storage', function(e) {
+            if (e.key === STORAGE_KEY) {
+                try { displayHistory(); updateStats(); } catch (err) {}
+            }
+        });
+
+        // ─── INITIALIZE ────────────────────────────────────────────────────────────
+        // Fix 9: set today's date using local time
+        document.getElementById('workoutDate').value = todayISO();
+
         addExerciseRow();
         try { displayHistory(); } catch(e) { console.error('History error:', e); }
         try { updateStats(); } catch(e) { console.error('Stats error:', e); }
