@@ -807,6 +807,7 @@
 
         // Normalize exercise name for comparison (handles "leg extensions" vs "leg extension")
         function normalizeName(name) {
+            if (!name || typeof name !== 'string') return '';
             let n = name.trim().toLowerCase().replace(/\s+/g, ' ');
             // Singularize trailing 's' (extensions → extension) only for words > 4 chars
             n = n.replace(/\b([a-z]{4,})s\b/g, '$1');
@@ -886,8 +887,8 @@
 
         // Initialize
         addExerciseRow();
-        displayHistory();
-        updateStats();
+        try { displayHistory(); } catch(e) { console.error('History error:', e); }
+        try { updateStats(); } catch(e) { console.error('Stats error:', e); }
     </script>
 </body>
 </html>
