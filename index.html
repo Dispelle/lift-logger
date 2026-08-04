@@ -752,33 +752,62 @@
             localStorage.setItem(BACKUP_KEY, JSON.stringify(data));
         }
 
-        // ─── FIX 8: PARSEWEIGHT (handles "2p+10" correctly) ──────────────────────
-        function parseWeight(notation) {
+        // ─── PARSEWEIGHTSMART (exercise-aware plate calculation) ────────────────
+        // Exercises where "p" = plates per side on a barbell/plate-loaded machine
+        // Total weight = (plates_per_side * 45 * 2) + 45 (bar)
+        var PLATE_PER_SIDE_EXERCISES = [
+            'incline machine', 'hack squat', 'leg press', 'close leg press',
+            'close foot leg press', 'quad press', 'machine row', 'seated calf machine',
+            'dip plate machine', 'cable rdl'
+        ];
+
+        // Exercises where "p" = total plates hanging (belt, chain, etc.)
+        // Total weight = plates * 45 (+ any extra)
+        var PLATE_TOTAL_EXERCISES = [
+            'weighted dip', 'dip', 'pull up', 'chin up'
+        ];
+
+        function parseWeightSmart(notation, exerciseName) {
             if (!notation) return 0;
             notation = String(notation).trim().toLowerCase();
-            // Handle combined plate+pounds e.g. "2p+10" = 90+10 = 100
-            if (notation.includes('p') && notation.includes('+')) {
-                var parts = notation.split('+');
-                return parts.reduce(function(sum, part) {
-                    part = part.trim();
-                    if (part.includes('p')) return sum + (parseFloat(part.replace('p', '')) || 0) * 45;
-                    return sum + (parseFloat(part) || 0);
-                }, 0);
-            }
+            var normName = normalizeName(exerciseName || '');
+
+            var isPerSide = PLATE_PER_SIDE_EXERCISES.some(function(e) { return normName.includes(normalizeName(e)); });
+            var isTotalPlate = PLATE_TOTAL_EXERCISES.some(function(e) { return normName.includes(normalizeName(e)); });
+
             if (notation.includes('p')) {
-                return (parseFloat(notation.replace('p', '')) || 0) * 45;
+                var pMatch = notation.match(/^(\d+\.?\d*)p(\+[\d.+]+)?$/);
+                if (pMatch) {
+                    var basePlates = parseFloat(pMatch[1]) || 0;
+                    var extras = pMatch[2] ? pMatch[2].slice(1).split('+').reduce(function(s, v) { return s + (parseFloat(v) || 0); }, 0) : 0;
+
+                    if (isPerSide) {
+                        return (basePlates * 45 + extras) * 2 + 45;
+                    } else if (isTotalPlate) {
+                        return basePlates * 45 + extras;
+                    } else {
+                        return basePlates * 45 + extras;
+                    }
+                }
             }
-            if (notation.includes('+')) {
-                return notation.split('+').reduce(function(sum, p) {
-                    return sum + (parseFloat(p.trim()) || 0);
-                }, 0);
+
+            if (notation.includes('+') && !notation.includes('p')) {
+                return notation.split('+').reduce(function(s, p) { return s + (parseFloat(p.trim()) || 0); }, 0);
             }
+
+            if (notation === 'bw') return 0;
+
             return parseFloat(notation) || 0;
+        }
+
+        // Keep old parseWeight as alias for backwards compat (for manually logged workouts via form)
+        function parseWeight(notation) {
+            return parseWeightSmart(notation, '');
         }
 
         // Fix 2: formatWeight guard for null/NaN
         function formatWeight(weight) {
-            if (!weight || isNaN(weight)) return '?';
+            if (weight == null || isNaN(weight)) return '?';
             if (weight % 45 === 0 && weight >= 45) {
                 var plates = weight / 45;
                 return plates % 1 === 0 ? Math.floor(plates) + 'p' : plates.toFixed(1) + 'p';
@@ -870,11 +899,12 @@
 
             document.querySelectorAll('.exercise-row').forEach(function(row) {
                 var name = row.querySelector('.exercise-name').value;
-                var weight = parseWeight(row.querySelector('.exercise-weight').value);
+                var weightRaw = row.querySelector('.exercise-weight').value;
+                var weight = parseWeightSmart(weightRaw, name);
                 var reps = parseInt(row.querySelector('.exercise-reps').value);
                 var sets = parseInt(row.querySelector('.exercise-sets').value) || 1;
                 var notes = row.querySelector('.exercise-notes').value;
-                exercises.push({ name: name, weight: weight, reps: reps, sets: sets, notes: notes });
+                exercises.push({ name: name, weight: weight, weightRaw: weightRaw, reps: reps, sets: sets, notes: notes });
             });
 
             if (exercises.length === 0) {
@@ -934,7 +964,7 @@
                         (isPR && previous ? ' <span class="pr-badge">🔥 PR</span>' : '') +
                         '</div>' +
                         '<div class="exercise-stats">' +
-                        esc(formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps || 0)) +
+                        esc(ex.weightRaw ? ex.weightRaw : formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps || 0)) +
                         (ex.sets > 1 ? ' × ' + esc(String(ex.sets)) : '') +
                         (ex.notes ? '<br><em>' + esc(ex.notes) + '</em>' : '') +
                         '</div>' +
@@ -1062,76 +1092,148 @@
             var currentDate = null;
             var currentMuscle = null;
             var currentExercises = [];
+            var lastKnownMuscle = null;
+
+            function saveWorkout() {
+                if (currentDate && currentExercises.length > 0) {
+                    workouts.push({
+                        id: currentDate + '-' + Math.random().toString(36).slice(2),
+                        date: currentDate,
+                        muscleGroup: currentMuscle || lastKnownMuscle || 'UNKNOWN',
+                        exercises: currentExercises
+                    });
+                }
+            }
+
+            function parseDate(line) {
+                // Standard M/D/YY or M/DD/YY
+                var m = line.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);
+                if (m) return formatDateParts(m[1], m[2], m[3]);
+                // M/D.YY (period separator like 6/11.26)
+                m = line.match(/^(\d{1,2})\/(\d{1,2})\.(\d{2})$/);
+                if (m) return formatDateParts(m[1], m[2], m[3]);
+                // M/D (no year — use current year)
+                m = line.match(/^(\d{1,2})\/(\d{1,2})$/);
+                if (m) {
+                    var yr = new Date().getFullYear().toString().slice(-2);
+                    return formatDateParts(m[1], m[2], yr);
+                }
+                return null;
+            }
+
+            function formatDateParts(month, day, yr) {
+                var fullYear = parseInt(yr) < 50 ? 2000 + parseInt(yr) : 1900 + parseInt(yr);
+                var candidate = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+                if (candidate > new Date(Date.now() + 30 * 86400000)) fullYear -= 1;
+                return fullYear + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+            }
+
+            function extractMuscleGroup(line) {
+                // Strip emojis and normalize
+                var stripped = line.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|[\u{FE00}-\u{FEFF}]|\uFE0F|[\u{1F900}-\u{1F9FF}]/gu, '').trim();
+                var upper = stripped.toUpperCase();
+                var keywords = ['BACK','CHEST','LEGS','SHOULDERS','ARMS','PUSH','PULL','BICEP','TRICEP','GLUTES','ABS','CARDIO','FULL BODY'];
+                for (var k = 0; k < keywords.length; k++) {
+                    var kw = keywords[k];
+                    if (upper.includes(kw)) {
+                        if (upper.includes('ACTIVE RECOVERY') || upper.includes('BACKWARDS') || upper.includes('LIGHTER') || upper.includes('RECOVERY')) {
+                            return kw + ' (recovery)';
+                        }
+                        return kw;
+                    }
+                }
+                return null;
+            }
 
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i];
 
-                if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(line)) {
-                    if (currentDate && currentExercises.length > 0) {
-                        workouts.push({
-                            id: Date.now() + '-' + Math.random().toString(36).slice(2),
-                            date: formatDateString(currentDate),
-                            muscleGroup: currentMuscle || 'UNKNOWN',
-                            exercises: currentExercises
-                        });
-                    }
-                    currentDate = line;
+                // Skip pure separator lines
+                if (/^[-=*]+$/.test(line)) continue;
+
+                // Try date
+                var parsedDate = parseDate(line);
+                if (parsedDate) {
+                    saveWorkout();
+                    currentDate = parsedDate;
+                    currentMuscle = null;
                     currentExercises = [];
-                // Fix 7: improved muscle-group regex
-                } else if (line === line.toUpperCase() && /^[A-Z]/.test(line) && !/^\d/.test(line)) {
-                    currentMuscle = line;
-                } else if (currentDate && line.length > 0) {
+                    continue;
+                }
+
+                // Try muscle group
+                var muscle = extractMuscleGroup(line);
+                if (muscle && currentDate) {
+                    currentMuscle = muscle;
+                    lastKnownMuscle = muscle;
+                    continue;
+                }
+
+                // Try exercise line
+                if (currentDate) {
                     var exercise = parseExerciseLine(line);
                     if (exercise) currentExercises.push(exercise);
                 }
             }
 
-            if (currentDate && currentExercises.length > 0) {
-                workouts.push({
-                    id: Date.now() + '-' + Math.random().toString(36).slice(2),
-                    date: formatDateString(currentDate),
-                    muscleGroup: currentMuscle || 'UNKNOWN',
-                    exercises: currentExercises
-                });
-            }
-
+            saveWorkout();
             return workouts;
         }
 
         // ─── PARSE EXERCISE LINE ───────────────────────────────────────────────────
         function parseExerciseLine(line) {
-            var match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*x\s*(\d+)(.*)$/i);
+            // Strip emojis
+            line = line.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|[\u{FE00}-\u{FEFF}]|\uFE0F|[\u{1F900}-\u{1F9FF}]/gu, '').trim();
 
-            if (!match) {
-                match = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s+(\d+)(.*)$/i);
+            // Skip pure description lines (no weight pattern at all)
+            if (/^(3 sets|[23] sets|bw$|active recovery|incline sit-up|leg raises?\s*\d|incline sit)/i.test(line)) return null;
+
+            // Handle multiple sets on one line (e.g. "80x15. 90x15") — take the LAST set
+            if (/\d+x\d+[.\s]+\d+x\d+/.test(line)) {
+                var parts = line.split(/[.\s]+(?=\d+x)/);
+                line = parts[parts.length - 1].trim();
             }
 
-            if (!match) {
-                var m2 = line.match(/^([a-z][a-z\s/()'-]*)\s+([0-9p.+]+)\s*(.*)$/i);
-                if (m2) {
-                    return {
-                        name: m2[1].trim(),
-                        weight: parseWeight(m2[2]),
-                        reps: 0,
-                        sets: 1,
-                        notes: m2[3].trim()
-                    };
-                }
-            }
+            // Normalize weight notation variants before parsing
+            line = line.replace(/(\d+\.?\d*p)\s+and\s+(\d+)/gi, '$1+$2');
+            line = line.replace(/(\d+\.?\d*p)n(\d+)/gi, '$1+$2');
+            line = line.replace(/(\d+\.?\d*p)&(\d+)/gi, '$1+$2');
+            line = line.replace(/(\d+\.?\d*p)(\s+\d+-\d+)+/gi, function(match, base, rest) {
+                var extras = match.match(/\d+-(\d+)/g) || [];
+                return base + extras.map(function(e) { return '+' + e.split('-')[1]; }).join('');
+            });
+
+            // Normalize reps ranges and trailing notes
+            line = line.replace(/(\d+)-\d+\s*(i\s*(think|forget|remember|guess))?/gi, '$1');
+            line = line.replace(/\s+(i\s+\w+|super\s+\w+|or\s+\w+\s+i\s+\w+|ish|\d+\s+warmup\s+set|green\s+band|red\s+machine.*|downstairs.*|new\s+pr.*|diff\s+cable.*|1\s+sec\s+pause.*|with\s+band.*)$/gi, '');
+
+            // Pattern 1: name weight x reps
+            var match = line.match(/^([a-z][a-z\s/()'-]*?)\s{1,}([0-9p.+\-]+(?:\+[0-9]+)*)\s*x\s*(\d+\.?\d*)\s*(.*)$/i);
+            // Pattern 2: name weight reps (no x)
+            if (!match) match = line.match(/^([a-z][a-z\s/()'-]*?)\s{2,}([0-9p.+]+)\s+(\d+)\s*(.*)$/i);
+            // Pattern 3: name +weight x reps (weighted dips with + prefix)
+            if (!match) match = line.match(/^([a-z][a-z\s/()'-]*?)\s+\+([0-9]+)\s*x\s*(\d+)\s*(.*)$/i);
 
             if (match) {
                 var name = match[1].trim();
-                var weight = parseWeight(match[2]);
-                var reps = parseInt(match[3]);
-                var notes = match[4].trim();
-                if (!weight || weight <= 0) return null;
-                return { name: name, weight: weight, reps: reps, sets: 1, notes: notes };
+                var weightStr = match[2] ? match[2].trim() : match[2];
+                var reps = Math.floor(parseFloat(match[3])) || 0;
+                var notes = (match[4] || '').trim();
+
+                // Skip if name is very short or looks like a date
+                if (name.length < 2) return null;
+                if (/^\d+\/\d+/.test(name)) return null;
+
+                var weight = parseWeightSmart(weightStr, name);
+                if (isNaN(weight) || weight <= 0) return null;
+
+                return { name: name, weight: weight, weightRaw: weightStr, reps: reps, sets: 1, notes: notes };
             }
 
             return null;
         }
 
-        // ─── FORMAT DATE STRING ────────────────────────────────────────────────────
+        // ─── FORMAT DATE STRING (kept for backwards compat) ───────────────────────
         function formatDateString(dateStr) {
             var parts = dateStr.split('/');
             var month = parts[0], day = parts[1], year = parts[2];
