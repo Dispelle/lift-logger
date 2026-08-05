@@ -638,7 +638,7 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.3 · Aug 5, 2026</p>
+                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.4 · Aug 5, 2026</p>
                 </div>
                 <!-- v3.1: theme picker + reload -->
                 <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
@@ -975,6 +975,134 @@
             'quad press': 'leg press'
         };
 
+        // ─── EXERCISE GROUPS — explicit canonical merging ─────────────────────────
+        // Each entry: { canonical: 'Display Name', variants: [...lowercase strings] }
+        var EXERCISE_GROUPS = [
+            // ── SQUAT
+            { canonical: 'Barbell Squat', variants: ['squat','back squat','barbell squat','high bar squat','low bar squat','bb squat','high-bar squat','low-bar squat','barbell back squat'] },
+            { canonical: 'Hack Squat', variants: ['hack squat','machine hack squat','plate hack squat'] },
+            { canonical: 'Goblet Squat', variants: ['goblet squat','db goblet squat','dumbbell goblet squat'] },
+            { canonical: 'Bulgarian Split Squat', variants: ['bulgarian split squat','bss','split squat','rear foot elevated split squat','rfess'] },
+            { canonical: 'Front Squat', variants: ['front squat','barbell front squat'] },
+            { canonical: 'Smith Squat', variants: ['smith squat','smith machine squat'] },
+
+            // ── DEADLIFT
+            { canonical: 'Deadlift', variants: ['deadlift','conventional deadlift','barbell deadlift','bb deadlift','sumo deadlift','dl'] },
+            { canonical: 'Romanian Deadlift', variants: ['romanian deadlift','rdl','stiff leg deadlift','stiff-leg deadlift','stiff legged deadlift','barbell rdl','db rdl','dumbbell rdl'] },
+            { canonical: 'Trap Bar Deadlift', variants: ['trap bar deadlift','hex bar deadlift','trap bar dl'] },
+
+            // ── BENCH PRESS (FLAT)
+            { canonical: 'Bench Press', variants: ['bench press','flat bench','barbell bench','barbell bench press','bb bench press','bb bench','flat bench press','chest press','barbell chest press'] },
+            { canonical: 'Dumbbell Press', variants: ['dumbbell press','db press','flat dumbbell press','flat db press','dumbbell chest press','db chest press'] },
+            { canonical: 'Smith Bench', variants: ['smith bench','smith machine bench','smith machine chest press','smith machine press'] },
+
+            // ── INCLINE PRESS
+            { canonical: 'Incline Bench Press', variants: ['incline bench press','incline bench','incline press','incline barbell press','incline bb press','incline barbell bench','incline barbell bench press'] },
+            { canonical: 'Incline Dumbbell Press', variants: ['incline dumbbell press','incline db press','incline dumbbell','incline db'] },
+            { canonical: 'Incline Smith Press', variants: ['incline smith press','incline smith machine press','incline smith machine'] },
+
+            // ── DECLINE PRESS
+            { canonical: 'Decline Bench Press', variants: ['decline bench press','decline bench','decline press','decline barbell press'] },
+            { canonical: 'Decline Dumbbell Press', variants: ['decline dumbbell press','decline db press'] },
+
+            // ── SHOULDER PRESS
+            { canonical: 'Overhead Press', variants: ['overhead press','ohp','shoulder press','military press','barbell ohp','standing press','bb ohp','barbell shoulder press','barbell overhead press','standing ohp','standing overhead press'] },
+            { canonical: 'Dumbbell Shoulder Press', variants: ['dumbbell shoulder press','db shoulder press','db ohp','seated db press','seated shoulder press','seated dumbbell press','dumbbell ohp','seated dumbbell shoulder press','seated db shoulder press'] },
+            { canonical: 'Arnold Press', variants: ['arnold press','arnold','dumbbell arnold press','db arnold press'] },
+            { canonical: 'Machine Shoulder Press', variants: ['machine shoulder press','shoulder press machine','machine ohp','machine overhead press'] },
+
+            // ── CHEST FLY / CABLE
+            { canonical: 'Cable Fly', variants: ['cable fly','cable crossover','crossover','cable chest fly','cable flye','pec fly cable','low to high cable fly','high to low cable fly','single arm cable fly'] },
+            { canonical: 'Dumbbell Fly', variants: ['dumbbell fly','db fly','flat fly','flat dumbbell fly','flat db fly','dumbbell flye','db flye'] },
+            { canonical: 'Incline Dumbbell Fly', variants: ['incline dumbbell fly','incline db fly','incline fly','incline flye','incline dumbbell flye'] },
+            { canonical: 'Pec Deck', variants: ['pec deck','machine fly','chest fly machine','butterfly','pec fly machine','pec deck machine','pec fly'] },
+            { canonical: 'Chest Dip', variants: ['chest dip','weighted chest dip','forward lean dip'] },
+
+            // ── PULL / ROW
+            { canonical: 'Pull Up', variants: ['pull up','pullup','pull-up','chin up','chinup','chin-up','weighted pull up','weighted pullup','assisted pull up','pull ups'] },
+            { canonical: 'Lat Pulldown', variants: ['lat pulldown','pulldown','cable pulldown','machine pulldown','wide grip pulldown','close grip pulldown','reverse grip pulldown','lat pull down','straight arm pulldown'] },
+            { canonical: 'Seated Cable Row', variants: ['seated cable row','cable row','seated row','machine row','low row','seated low row','cable seated row'] },
+            { canonical: 'Barbell Row', variants: ['barbell row','bb row','bent over row','bent over barbell row','bent over bb row','pendlay row','barbell bent over row','overhand row'] },
+            { canonical: 'Dumbbell Row', variants: ['dumbbell row','db row','single arm row','one arm row','one-arm dumbbell row','single arm dumbbell row','kroc row'] },
+            { canonical: 'T-Bar Row', variants: ['t-bar row','t bar row','tbar row'] },
+            { canonical: 'Face Pull', variants: ['face pull','rope face pull','cable face pull','face pulls'] },
+            { canonical: 'Meadows Row', variants: ['meadows row','landmine row'] },
+
+            // ── LEG PRESS / EXTENSION / CURL
+            { canonical: 'Leg Press', variants: ['leg press','machine leg press','sled leg press','45 degree leg press','leg press machine','standard leg press','wide leg press','narrow leg press','normal leg press'] },
+            { canonical: 'Leg Press Close', variants: ['leg press close','close leg press','close foot leg press','leg press close stance','narrow stance leg press'] },
+            { canonical: 'Leg Extension', variants: ['leg extension','leg extention','quad extension','machine leg extension','seated leg extension','leg extension machine'] },
+            { canonical: 'Leg Curl', variants: ['leg curl','hamstring curl','lying leg curl','prone leg curl','seated leg curl','machine leg curl','lying hamstring curl'] },
+            { canonical: 'Hip Thrust', variants: ['hip thrust','barbell hip thrust','hip thruster','bb hip thrust','glute bridge','barbell glute bridge','hip extension'] },
+            { canonical: 'Calf Raise', variants: ['calf raise','standing calf raise','seated calf raise','machine calf raise','calf raises','standing calf','donkey calf raise','seated calf','smith machine calf raise'] },
+            { canonical: 'Good Morning', variants: ['good morning','barbell good morning','bb good morning'] },
+            { canonical: 'Nordic Curl', variants: ['nordic curl','nordic hamstring curl','glute ham raise','ghr'] },
+            { canonical: 'Adductor Machine', variants: ['adductor machine','inner thigh machine','hip adductor','adductor','inner thigh'] },
+            { canonical: 'Abductor Machine', variants: ['abductor machine','outer thigh machine','hip abductor','abductor','outer thigh'] },
+
+            // ── BICEPS
+            { canonical: 'Barbell Curl', variants: ['barbell curl','bb curl','straight bar curl','barbell bicep curl','bb bicep curl','straight barbell curl'] },
+            { canonical: 'EZ Curl', variants: ['ez curl','ez bar curl','ez bar','ez-bar curl','ez bar bicep curl','ez curl bar'] },
+            { canonical: 'Dumbbell Curl', variants: ['dumbbell curl','db curl','alternating curl','alternating db curl','alternating dumbbell curl','standing dumbbell curl','standing db curl'] },
+            { canonical: 'Hammer Curl', variants: ['hammer curl','hammer','db hammer curl','dumbbell hammer curl','cross body hammer curl'] },
+            { canonical: 'Preacher Curl', variants: ['preacher curl','preacher','ez preacher curl','barbell preacher curl','machine preacher curl','scott curl'] },
+            { canonical: 'Cable Curl', variants: ['cable curl','rope curl','cable bicep curl','low cable curl','cable bar curl'] },
+            { canonical: 'Incline Dumbbell Curl', variants: ['incline dumbbell curl','incline db curl','incline curl'] },
+            { canonical: 'Concentration Curl', variants: ['concentration curl','seated concentration curl'] },
+
+            // ── TRICEPS
+            { canonical: 'Tricep Rope', variants: ['tricep rope','rope pushdown','rope tricep','cable tricep','tricep pushdown','pushdown','rope cable pushdown','cable rope pushdown','tricep rope pushdown'] },
+            { canonical: 'Tricep Bar Pushdown', variants: ['tricep bar pushdown','bar pushdown','straight bar pushdown','cable bar pushdown','vbar pushdown','v-bar pushdown'] },
+            { canonical: 'Tricep Extension', variants: ['tricep extension','overhead tricep extension','overhead extension','cable overhead extension','dumbbell overhead extension','db overhead extension','ez bar overhead extension','skull crusher','skullcrusher','lying tricep extension','lying ez bar extension'] },
+            { canonical: 'Tricep Dip', variants: ['tricep dip','weighted dip','close grip dip','bench dip','tricep bench dip'] },
+            { canonical: 'Close Grip Bench', variants: ['close grip bench','close grip bench press','cgbp','close grip press','narrow grip bench'] },
+            { canonical: 'Kickback', variants: ['kickback','tricep kickback','dumbbell kickback','db kickback','cable kickback'] },
+
+            // ── SHOULDERS / LATERAL
+            { canonical: 'Lat Raise', variants: ['lat raise','lateral raise','side raise','dumbbell lateral raise','db lateral raise','cable lateral raise','machine lateral raise','dumbbell side raise','db side raise'] },
+            { canonical: 'Front Raise', variants: ['front raise','dumbbell front raise','db front raise','barbell front raise','cable front raise','plate front raise'] },
+            { canonical: 'Rear Delt Fly', variants: ['rear delt fly','rear fly','reverse fly','pec deck rear','rear delt machine','bent over rear delt','reverse pec deck','cable rear delt','db rear delt','dumbbell rear delt fly'] },
+            { canonical: 'Upright Row', variants: ['upright row','barbell upright row','cable upright row','dumbbell upright row','db upright row'] },
+            { canonical: 'Shrug', variants: ['shrug','barbell shrug','dumbbell shrug','db shrug','trap shrug','shoulder shrug','smith machine shrug'] },
+
+            // ── BACK / TRAPS
+            { canonical: 'Nautilus Pullover', variants: ['nautilus pullover','nautilus','machine pullover','pullover machine','dumbbell pullover','db pullover','cable pullover'] },
+            { canonical: 'Hyperextension', variants: ['hyperextension','back extension','roman chair','45 degree hyperextension'] },
+
+            // ── CORE / ABS
+            { canonical: 'Plank', variants: ['plank','forearm plank','long arm plank'] },
+            { canonical: 'Crunch', variants: ['crunch','crunches','cable crunch','machine crunch','ab crunch','weighted crunch'] },
+            { canonical: 'Leg Raise', variants: ['leg raise','hanging leg raise','lying leg raise','captain chair leg raise','knee raise','hanging knee raise'] },
+
+            // ── CARDIO / OTHER
+            { canonical: 'Dip', variants: ['dip','parallel bar dip','parallel dip','bar dip'] },
+        ];
+
+        // Build flat lookup: variant string → canonical display name
+        var _exerciseGroupMap = {};
+        (function() {
+            EXERCISE_GROUPS.forEach(function(g) {
+                g.variants.forEach(function(v) {
+                    _exerciseGroupMap[v] = g.canonical;
+                });
+            });
+        })();
+
+        // Returns canonical display name if exercise matches a known group, else null
+        function getGroupCanonical(name) {
+            if (!name) return null;
+            var n = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            if (_exerciseGroupMap[n]) return _exerciseGroupMap[n];
+            var keys = Object.keys(_exerciseGroupMap);
+            for (var i = 0; i < keys.length; i++) {
+                var v = keys[i];
+                if (n === v || n.includes(v) || v.includes(n)) {
+                    return _exerciseGroupMap[v];
+                }
+            }
+            return null;
+        }
+
         function normalizeName(name) {
             if (!name || typeof name !== 'string') return '';
             var n = name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -1236,7 +1364,7 @@
                 var mgNorm = normalizeMuscleGroup(workout.muscleGroup);
                 muscleGroups[mgNorm] = (muscleGroups[mgNorm] || 0) + 1;
                 workout.exercises.forEach(function(ex) {
-                    var canonical = getCanonicalName(ex.name, workouts);
+                    var canonical = getGroupCanonical(ex.name) || getCanonicalName(ex.name, workouts);
                     var key = normalizeName(canonical);
                     if (!allExercises[key]) {
                         allExercises[key] = { name: canonical, maxWeight: ex.weight, entries: [] };
