@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="theme-dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,47 +9,42 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Lift Logger</title>
-    <!-- Fix 1: Apply theme immediately before CSS to prevent flash -->
+    <!-- v3.1: Apply theme vars immediately before CSS to prevent flash -->
     <script>
-        (function() {
-            var saved = localStorage.getItem('liftLoggerTheme') || 'dark';
-            document.documentElement.className = 'theme-' + saved;
+        (function(){
+            var INLINE_THEMES={
+                dark:{'--bg-primary':'#0a0a0a','--bg-secondary':'#1a1a1a','--bg-tertiary':'#1f1f1f','--bg-header':'#0a0a0a','--accent':'#00ff44','--accent-rgb':'0,255,68','--accent-dim':'rgba(0,255,68,0.06)','--text-primary':'#ffffff','--text-secondary':'#888','--text-muted':'#444','--border-color':'#222','--border-light':'#333','--ring1-color':'rgba(0,255,80,0.06)','--ring2-color':'rgba(255,255,255,0.04)'},
+                purple:{'--bg-primary':'#0d0010','--bg-secondary':'#1a0025','--bg-tertiary':'#220030','--bg-header':'#0d0010','--accent':'#cc44ff','--accent-rgb':'204,68,255','--accent-dim':'rgba(204,68,255,0.08)','--text-primary':'#f0e0ff','--text-secondary':'#9966bb','--text-muted':'#442255','--border-color':'#2a0040','--border-light':'#3d0060','--ring1-color':'rgba(180,0,255,0.08)','--ring2-color':'rgba(255,0,200,0.04)'},
+                neon:{'--bg-primary':'#050510','--bg-secondary':'#0a0a1f','--bg-tertiary':'#0f0f28','--bg-header':'#050510','--accent':'#00ffff','--accent-rgb':'0,255,255','--accent-dim':'rgba(0,255,255,0.06)','--text-primary':'#e0ffff','--text-secondary':'#4499aa','--text-muted':'#1a3344','--border-color':'#0a1a2a','--border-light':'#0f2233','--ring1-color':'rgba(0,255,255,0.06)','--ring2-color':'rgba(0,100,255,0.04)'},
+                ocean:{'--bg-primary':'#030d1a','--bg-secondary':'#071828','--bg-tertiary':'#0a2035','--bg-header':'#030d1a','--accent':'#00aaff','--accent-rgb':'0,170,255','--accent-dim':'rgba(0,170,255,0.07)','--text-primary':'#d0eeff','--text-secondary':'#4488aa','--text-muted':'#1a3344','--border-color':'#0a1f33','--border-light':'#0f2d44','--ring1-color':'rgba(0,150,255,0.07)','--ring2-color':'rgba(0,80,160,0.05)'},
+                sunset:{'--bg-primary':'#0f0500','--bg-secondary':'#1f0a00','--bg-tertiary':'#2a1000','--bg-header':'#0f0500','--accent':'#ff6600','--accent-rgb':'255,102,0','--accent-dim':'rgba(255,102,0,0.07)','--text-primary':'#fff0e0','--text-secondary':'#aa6633','--text-muted':'#442200','--border-color':'#2a1000','--border-light':'#3d1800','--ring1-color':'rgba(255,80,0,0.07)','--ring2-color':'rgba(200,50,0,0.04)'},
+                gold:{'--bg-primary':'#0a0800','--bg-secondary':'#1a1400','--bg-tertiary':'#221c00','--bg-header':'#0a0800','--accent':'#ffcc00','--accent-rgb':'255,204,0','--accent-dim':'rgba(255,204,0,0.07)','--text-primary':'#fff8e0','--text-secondary':'#aa9933','--text-muted':'#443300','--border-color':'#221a00','--border-light':'#332800','--ring1-color':'rgba(255,200,0,0.07)','--ring2-color':'rgba(180,140,0,0.04)'},
+                blood:{'--bg-primary':'#0a0000','--bg-secondary':'#1a0000','--bg-tertiary':'#220000','--bg-header':'#0a0000','--accent':'#ff2222','--accent-rgb':'255,34,34','--accent-dim':'rgba(255,34,34,0.07)','--text-primary':'#ffe0e0','--text-secondary':'#aa3333','--text-muted':'#441111','--border-color':'#220000','--border-light':'#330000','--ring1-color':'rgba(255,0,0,0.07)','--ring2-color':'rgba(160,0,0,0.04)'},
+                mono:{'--bg-primary':'#0f0f0f','--bg-secondary':'#1c1c1c','--bg-tertiary':'#242424','--bg-header':'#0f0f0f','--accent':'#cccccc','--accent-rgb':'204,204,204','--accent-dim':'rgba(204,204,204,0.06)','--text-primary':'#ffffff','--text-secondary':'#777777','--text-muted':'#333333','--border-color':'#222222','--border-light':'#333333','--ring1-color':'rgba(200,200,200,0.05)','--ring2-color':'rgba(150,150,150,0.03)'}
+            };
+            var t=localStorage.getItem('liftLoggerTheme')||'dark';
+            var theme=INLINE_THEMES[t]||INLINE_THEMES.dark;
+            var r=document.documentElement;
+            Object.keys(theme).forEach(function(k){r.style.setProperty(k,theme[k]);});
         })();
     </script>
     <style>
-        /* Fix 1: CSS variables for theming */
+        /* v3.1: CSS variable system — values set by JS applyTheme() */
         :root {
-            --bg: #0a0a0a;
-            --bg2: #1a1a1a;
-            --bg3: #222;
-            --border: #333;
-            --text: #fff;
-            --text2: #aaa;
-            --text3: #888;
-            --accent: #00ff00;
-            --header-bg: #0a0a0a;
-        }
-        html.theme-light {
-            --bg: #f5f5f5;
-            --bg2: #e8e8e8;
-            --bg3: #ddd;
-            --border: #ccc;
-            --text: #111;
-            --text2: #444;
-            --text3: #666;
-            --accent: #009900;
-            --header-bg: #f5f5f5;
-        }
-        html.theme-rainbow {
-            --bg: #0a0010;
-            --bg2: #150025;
-            --bg3: #1a0030;
-            --border: #440066;
-            --text: #fff;
-            --text2: #dd88ff;
-            --text3: #aa55cc;
-            --accent: #ff00ff;
-            --header-bg: #0a0010;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #1f1f1f;
+            --bg-header: #0a0a0a;
+            --accent: #00ff44;
+            --accent-rgb: 0,255,68;
+            --accent-dim: rgba(0,255,68,0.06);
+            --text-primary: #ffffff;
+            --text-secondary: #888888;
+            --text-muted: #444444;
+            --border-color: #222222;
+            --border-light: #333333;
+            --ring1-color: rgba(0,255,80,0.06);
+            --ring2-color: rgba(255,255,255,0.04);
         }
 
         * {
@@ -60,8 +55,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             padding-bottom: 20px;
         }
 
@@ -91,9 +86,9 @@
             width: 340px;
             height: 340px;
             border-radius: 50%;
-            border: 32px solid rgba(0, 255, 80, 0.06);
-            box-shadow: inset 0 0 0 12px rgba(0,255,80,0.03),
-                        inset 0 0 0 22px rgba(0,255,80,0.015);
+            border: 32px solid var(--ring1-color);
+            box-shadow: inset 0 0 0 12px rgba(var(--accent-rgb),0.03),
+                        inset 0 0 0 22px rgba(var(--accent-rgb),0.015);
             animation: rotate-rev 25s linear infinite, pulse-glow 6s ease-in-out infinite;
             pointer-events: none;
             z-index: 0;
@@ -108,21 +103,14 @@
             width: 280px;
             height: 280px;
             border-radius: 50%;
-            border: 24px solid rgba(255, 255, 255, 0.04);
+            border: 24px solid var(--ring2-color);
             box-shadow: inset 0 0 0 10px rgba(255,255,255,0.015);
             animation: rotate-rev 18s linear infinite reverse;
             pointer-events: none;
             z-index: 0;
         }
 
-        html.theme-rainbow body::before {
-            border-color: rgba(255, 0, 255, 0.2);
-            animation: rotate-rev 25s linear infinite, rainbow-spin 3s linear infinite;
-        }
-        html.theme-rainbow body::after {
-            border-color: rgba(0, 255, 255, 0.15);
-            animation: rotate-rev 18s linear infinite reverse, rainbow-spin 2s linear infinite;
-        }
+        /* Ring colors controlled by CSS vars set by applyTheme() */
 
         /* Barbell bar — horizontal accent across middle */
         .gym-bar {
@@ -169,11 +157,11 @@
 
         header {
             padding: 20px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-light);
             margin-bottom: 20px;
             position: sticky;
             top: 0;
-            background: var(--header-bg);
+            background: var(--bg-header);
             z-index: 100;
         }
 
@@ -181,19 +169,19 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 8px;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         header p {
             font-size: 12px;
-            color: var(--text3);
+            color: var(--text-muted);
         }
 
         .tabs {
             display: flex;
             gap: 4px;
             margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-light);
             padding-bottom: 0;
             overflow-x: auto;
         }
@@ -203,7 +191,7 @@
             padding: 12px 8px;
             background: none;
             border: none;
-            color: var(--text3);
+            color: var(--text-muted);
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
@@ -213,7 +201,7 @@
         }
 
         .tab-btn.active {
-            color: var(--text);
+            color: var(--text-primary);
             border-bottom-color: var(--accent);
         }
 
@@ -234,7 +222,7 @@
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: var(--text2);
+            color: var(--text-secondary);
             margin-bottom: 6px;
             text-transform: uppercase;
         }
@@ -243,9 +231,9 @@
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            color: var(--text);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            color: var(--text-primary);
             border-radius: 4px;
             font-family: inherit;
             font-size: 16px;
@@ -258,11 +246,11 @@
         }
 
         .exercise-row {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 12px;
             margin-bottom: 12px;
             border-radius: 4px;
-            border-left: 3px solid var(--border);
+            border-left: 3px solid var(--border-light);
         }
 
         .exercise-row.pr {
@@ -274,8 +262,8 @@
         }
 
         .remove-exercise {
-            background: var(--bg3);
-            color: var(--text3);
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
             border: none;
             padding: 8px 12px;
             border-radius: 4px;
@@ -310,9 +298,9 @@
         button.secondary {
             width: 100%;
             padding: 12px;
-            background: var(--bg2);
-            color: var(--text);
-            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
             border-radius: 4px;
             font-weight: 600;
             font-size: 14px;
@@ -327,7 +315,7 @@
 
         /* HISTORY */
         .session {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 16px;
             margin-bottom: 16px;
             border-radius: 4px;
@@ -344,12 +332,12 @@
         .session-date {
             font-weight: 700;
             font-size: 16px;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .session-muscle {
             font-size: 12px;
-            color: var(--text3);
+            color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 600;
         }
@@ -361,9 +349,9 @@
 
         .session-btn {
             padding: 6px 8px;
-            background: var(--bg3);
+            background: var(--bg-tertiary);
             border: none;
-            color: var(--text2);
+            color: var(--text-secondary);
             font-size: 11px;
             border-radius: 3px;
             cursor: pointer;
@@ -372,7 +360,7 @@
 
         .session-btn:hover {
             background: #444;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .session-btn.delete:hover {
@@ -388,12 +376,12 @@
             font-weight: 600;
             margin-bottom: 4px;
             font-size: 14px;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .exercise-stats {
             font-size: 13px;
-            color: var(--text2);
+            color: var(--text-secondary);
         }
 
         .pr-badge {
@@ -409,7 +397,7 @@
 
         .comparison {
             font-size: 11px;
-            color: var(--text3);
+            color: var(--text-muted);
             margin-top: 4px;
         }
 
@@ -430,7 +418,7 @@
         }
 
         .stat-card {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 16px;
             border-radius: 4px;
             border-left: 3px solid var(--accent);
@@ -438,7 +426,7 @@
 
         .stat-label {
             font-size: 11px;
-            color: var(--text3);
+            color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 600;
             margin-bottom: 4px;
@@ -447,11 +435,11 @@
         .stat-value {
             font-size: 24px;
             font-weight: 700;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .exercise-history {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 16px;
             margin-bottom: 12px;
             border-radius: 4px;
@@ -461,14 +449,14 @@
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 12px;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .history-entry {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-light);
             font-size: 13px;
         }
 
@@ -477,12 +465,12 @@
         }
 
         .history-date {
-            color: var(--text3);
+            color: var(--text-muted);
         }
 
         .history-weight {
             font-weight: 600;
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         .history-weight.pr {
@@ -491,7 +479,7 @@
 
         /* IMPORT/EXPORT */
         .import-box {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 16px;
             border-radius: 4px;
             margin-bottom: 16px;
@@ -505,11 +493,11 @@
         }
 
         .note {
-            background: var(--bg3);
+            background: var(--bg-tertiary);
             padding: 12px;
             border-radius: 4px;
             font-size: 12px;
-            color: var(--text3);
+            color: var(--text-muted);
             line-height: 1.5;
             margin-bottom: 12px;
         }
@@ -532,7 +520,7 @@
 
         /* Fix 13: DATA TAB */
         .data-section {
-            background: var(--bg2);
+            background: var(--bg-secondary);
             padding: 16px;
             border-radius: 4px;
             margin-bottom: 16px;
@@ -541,34 +529,24 @@
             font-size: 14px;
             font-weight: 700;
             text-transform: uppercase;
-            color: var(--text2);
+            color: var(--text-secondary);
             margin-bottom: 12px;
         }
         .data-stats {
             font-size: 14px;
-            color: var(--text3);
+            color: var(--text-muted);
             margin-bottom: 16px;
             line-height: 1.8;
         }
         .data-stats strong {
-            color: var(--text);
+            color: var(--text-primary);
         }
 
         /* Theme toggle button */
-        .theme-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text3);
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .theme-btn:hover {
-            border-color: var(--accent);
-            color: var(--text);
-        }
+        /* v3.1 theme dots */
+        .theme-dot { box-sizing: border-box; }
+        .theme-dot.active { border-color: var(--text-primary) !important; transform: scale(1.2); }
+        .theme-dot:hover { transform: scale(1.15); }
 
         @media (max-width: 480px) {
             .container {
@@ -596,7 +574,7 @@
         .empty-state {
             text-align: center;
             padding: 40px 20px;
-            color: var(--text3);
+            color: var(--text-muted);
         }
 
         .empty-state p {
@@ -609,11 +587,11 @@
             width: 100%;
             padding: 20px;
             margin-bottom: 12px;
-            background: #1a1a1a;
-            border: 1px solid #333;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
             border-left: 4px solid var(--split-color, #00ff88);
             border-radius: 8px;
-            color: #fff;
+            color: var(--text-primary);
             text-align: left;
             cursor: pointer;
             display: flex;
@@ -621,17 +599,17 @@
             gap: 16px;
             transition: all 0.2s;
         }
-        .split-card:hover { background: #222; transform: translateX(4px); }
+        .split-card:hover { background: var(--bg-tertiary); transform: translateX(4px); }
         .split-icon { font-size: 32px; }
         .split-name { font-size: 20px; font-weight: 700; flex: 1; }
-        .split-sub { font-size: 12px; color: #888; }
+        .split-sub { font-size: 12px; color: var(--text-secondary); }
         .split-add {
-            width: 100%; padding: 14px; background: none; border: 1px dashed #444;
-            border-radius: 8px; color: #666; font-size: 14px; cursor: pointer; margin-top: 8px;
+            width: 100%; padding: 14px; background: none; border: 1px dashed var(--border-light);
+            border-radius: 8px; color: var(--text-muted); font-size: 14px; cursor: pointer; margin-top: 8px;
         }
-        .split-add:hover { border-color: #00ff88; color: #00ff88; }
+        .split-add:hover { border-color: var(--accent); color: var(--accent); }
         .split-add-form {
-            background: #1a1a1a; border: 1px solid #333; border-radius: 8px;
+            background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: 8px;
             padding: 16px; margin-top: 12px;
         }
         .split-add-form input {
@@ -660,14 +638,14 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:#444; margin-top:4px;">v3.0 · Aug 5, 2026</p>
+                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.1 · Aug 5, 2026</p>
                 </div>
-                <!-- Fix 1: theme toggle + Fix 5: removed auto-reload, kept manual button -->
-                <div style="display:flex; gap:4px; margin-top:4px;">
-                    <button class="theme-btn" id="theme-btn" onclick="cycleTheme()" title="Toggle theme">🌙</button>
-                    <button onclick="location.reload()" style="background:none; border:1px solid var(--border); color:var(--text3); border-radius:4px; padding:6px 10px; font-size:18px; cursor:pointer;" title="Reload app">↻</button>
+                <!-- v3.1: theme picker + reload -->
+                <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
+                    <button onclick="location.reload()" style="background:none; border:1px solid var(--border-light); color:var(--text-muted); border-radius:4px; padding:6px 10px; font-size:18px; cursor:pointer;" title="Reload app">↻</button>
                 </div>
             </div>
+            <div id="theme-picker" style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:10px;"></div>
         </header>
 
         <!-- Fix 6: switchTab(tabName, this) on all buttons -->
@@ -762,12 +740,12 @@
             </div>
             <div class="data-section">
                 <h3>⬇ Export Backup</h3>
-                <p style="font-size:13px; color:var(--text3); margin-bottom:12px;">Download all your workout data as a JSON file.</p>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Download all your workout data as a JSON file.</p>
                 <button type="button" class="primary" onclick="exportData()">EXPORT JSON BACKUP</button>
             </div>
             <div class="data-section">
                 <h3>⬆ Restore from Backup</h3>
-                <p style="font-size:13px; color:var(--text3); margin-bottom:12px;">Select a previously exported JSON file to restore.</p>
+                <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px;">Select a previously exported JSON file to restore.</p>
                 <input type="file" id="restore-file" accept=".json" onchange="importDataFile(this)">
                 <div id="data-status" style="margin-top:12px;"></div>
             </div>
@@ -775,28 +753,55 @@
     </div>
 
     <script>
-        // ─── FIX 1: THEME ──────────────────────────────────────────────────────────
-        const THEMES = ['dark', 'light', 'rainbow'];
-        const THEME_ICONS = { dark: '🌙', light: '☀️', rainbow: '🌈' };
+        // ─── v3.1: MULTI-THEME SYSTEM ────────────────────────────────────────────
+        var THEMES = {
+            dark:   { name:'Dark',   emoji:'⚫', '--bg-primary':'#0a0a0a','--bg-secondary':'#1a1a1a','--bg-tertiary':'#1f1f1f','--bg-header':'#0a0a0a','--accent':'#00ff44','--accent-rgb':'0,255,68','--accent-dim':'rgba(0,255,68,0.06)','--text-primary':'#ffffff','--text-secondary':'#888','--text-muted':'#444','--border-color':'#222','--border-light':'#333','--ring1-color':'rgba(0,255,80,0.06)','--ring2-color':'rgba(255,255,255,0.04)' },
+            purple: { name:'Purple', emoji:'💜', '--bg-primary':'#0d0010','--bg-secondary':'#1a0025','--bg-tertiary':'#220030','--bg-header':'#0d0010','--accent':'#cc44ff','--accent-rgb':'204,68,255','--accent-dim':'rgba(204,68,255,0.08)','--text-primary':'#f0e0ff','--text-secondary':'#9966bb','--text-muted':'#442255','--border-color':'#2a0040','--border-light':'#3d0060','--ring1-color':'rgba(180,0,255,0.08)','--ring2-color':'rgba(255,0,200,0.04)' },
+            neon:   { name:'Neon',   emoji:'⚡', '--bg-primary':'#050510','--bg-secondary':'#0a0a1f','--bg-tertiary':'#0f0f28','--bg-header':'#050510','--accent':'#00ffff','--accent-rgb':'0,255,255','--accent-dim':'rgba(0,255,255,0.06)','--text-primary':'#e0ffff','--text-secondary':'#4499aa','--text-muted':'#1a3344','--border-color':'#0a1a2a','--border-light':'#0f2233','--ring1-color':'rgba(0,255,255,0.06)','--ring2-color':'rgba(0,100,255,0.04)' },
+            ocean:  { name:'Ocean',  emoji:'🌊', '--bg-primary':'#030d1a','--bg-secondary':'#071828','--bg-tertiary':'#0a2035','--bg-header':'#030d1a','--accent':'#00aaff','--accent-rgb':'0,170,255','--accent-dim':'rgba(0,170,255,0.07)','--text-primary':'#d0eeff','--text-secondary':'#4488aa','--text-muted':'#1a3344','--border-color':'#0a1f33','--border-light':'#0f2d44','--ring1-color':'rgba(0,150,255,0.07)','--ring2-color':'rgba(0,80,160,0.05)' },
+            sunset: { name:'Sunset', emoji:'🌅', '--bg-primary':'#0f0500','--bg-secondary':'#1f0a00','--bg-tertiary':'#2a1000','--bg-header':'#0f0500','--accent':'#ff6600','--accent-rgb':'255,102,0','--accent-dim':'rgba(255,102,0,0.07)','--text-primary':'#fff0e0','--text-secondary':'#aa6633','--text-muted':'#442200','--border-color':'#2a1000','--border-light':'#3d1800','--ring1-color':'rgba(255,80,0,0.07)','--ring2-color':'rgba(200,50,0,0.04)' },
+            gold:   { name:'Gold',   emoji:'✨', '--bg-primary':'#0a0800','--bg-secondary':'#1a1400','--bg-tertiary':'#221c00','--bg-header':'#0a0800','--accent':'#ffcc00','--accent-rgb':'255,204,0','--accent-dim':'rgba(255,204,0,0.07)','--text-primary':'#fff8e0','--text-secondary':'#aa9933','--text-muted':'#443300','--border-color':'#221a00','--border-light':'#332800','--ring1-color':'rgba(255,200,0,0.07)','--ring2-color':'rgba(180,140,0,0.04)' },
+            blood:  { name:'Blood',  emoji:'🔴', '--bg-primary':'#0a0000','--bg-secondary':'#1a0000','--bg-tertiary':'#220000','--bg-header':'#0a0000','--accent':'#ff2222','--accent-rgb':'255,34,34','--accent-dim':'rgba(255,34,34,0.07)','--text-primary':'#ffe0e0','--text-secondary':'#aa3333','--text-muted':'#441111','--border-color':'#220000','--border-light':'#330000','--ring1-color':'rgba(255,0,0,0.07)','--ring2-color':'rgba(160,0,0,0.04)' },
+            mono:   { name:'Mono',   emoji:'⬜', '--bg-primary':'#0f0f0f','--bg-secondary':'#1c1c1c','--bg-tertiary':'#242424','--bg-header':'#0f0f0f','--accent':'#cccccc','--accent-rgb':'204,204,204','--accent-dim':'rgba(204,204,204,0.06)','--text-primary':'#ffffff','--text-secondary':'#777777','--text-muted':'#333333','--border-color':'#222222','--border-light':'#333333','--ring1-color':'rgba(200,200,200,0.05)','--ring2-color':'rgba(150,150,150,0.03)' }
+        };
 
         function getTheme() {
             return localStorage.getItem('liftLoggerTheme') || 'dark';
         }
 
-        function applyTheme(theme) {
-            document.documentElement.className = 'theme-' + theme;
-            localStorage.setItem('liftLoggerTheme', theme);
-            var btn = document.getElementById('theme-btn');
-            if (btn) btn.textContent = THEME_ICONS[theme] || '🌙';
+        function applyTheme(themeKey) {
+            var theme = THEMES[themeKey] || THEMES.dark;
+            var root = document.documentElement;
+            Object.keys(theme).forEach(function(k) {
+                if (k.startsWith('--')) root.style.setProperty(k, theme[k]);
+            });
+            localStorage.setItem('liftLoggerTheme', themeKey);
+            document.querySelectorAll('.theme-dot').forEach(function(d) {
+                var isActive = d.dataset.theme === themeKey;
+                d.classList.toggle('active', isActive);
+                d.style.borderColor = isActive ? 'var(--text-primary)' : '#333';
+            });
         }
 
-        function cycleTheme() {
+        function renderThemePicker() {
+            var picker = document.getElementById('theme-picker');
+            if (!picker) return;
             var current = getTheme();
-            var next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
-            applyTheme(next);
+            picker.innerHTML = Object.keys(THEMES).map(function(key) {
+                var t = THEMES[key];
+                var isActive = key === current;
+                return '<button class="theme-dot' + (isActive ? ' active' : '') + '" ' +
+                    'data-theme="' + key + '" ' +
+                    'onclick="applyTheme(\'' + key + '\')" ' +
+                    'title="' + t.name + '" ' +
+                    'style="width:28px;height:28px;border-radius:50%;border:2px solid ' + (isActive ? '#fff' : '#333') + ';' +
+                    'background:' + t['--accent'] + ';cursor:pointer;transition:all 0.2s;font-size:13px;' +
+                    'display:inline-flex;align-items:center;justify-content:center;padding:0;">' +
+                    t.emoji + '</button>';
+            }).join('');
         }
 
-        // Sync button icon on load (theme class already applied by inline head script)
+        // Apply saved theme on load (vars already set by inline head script, just sync dots after DOM ready)
         applyTheme(getTheme());
 
         // ─── FIX 2: STORAGE (safe load/save with backup) ──────────────────────────
@@ -1197,21 +1202,43 @@
                 '<div class="stat-card"><div class="stat-label">Total Workouts</div><div class="stat-value">' + totalWorkouts + '</div></div>' +
                 '<div class="stat-card"><div class="stat-label">Unique Exercises</div><div class="stat-value">' + Object.keys(allExercises).length + '</div></div>' +
                 '</div>' +
-                '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text3);">Muscle Groups</h3>';
+                '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text-muted);">Muscle Groups</h3>';
 
-            Object.entries(muscleGroups).forEach(function(entry) {
-                html += '<div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; color:var(--text);">' +
-                    '<span>' + esc(entry[0]) + '</span><span style="color:var(--accent); font-weight:600;">' + entry[1] + '</span></div>';
+            var muscleColors = {
+                'CHEST':'#ff6b35','PUSH':'#ff6b35','SHOULDERS':'#ff6b35',
+                'BACK':'#00ff88','PULL':'#00ff88',
+                'LEGS':'#4a9eff','LOWER':'#4a9eff',
+                'ARMS':'#ffcc00','BICEP':'#ffcc00','TRICEP':'#ffcc00',
+                'UNKNOWN':'#444'
+            };
+            var maxCount = Math.max.apply(null, Object.values(muscleGroups));
+
+            Object.entries(muscleGroups).sort(function(a,b){return b[1]-a[1];}).forEach(function(entry) {
+                var group = entry[0], count = entry[1];
+                var color = 'var(--accent)';
+                var upper = group.toUpperCase();
+                var mcKeys = Object.keys(muscleColors);
+                for (var ki = 0; ki < mcKeys.length; ki++) {
+                    if (upper.indexOf(mcKeys[ki]) !== -1) { color = muscleColors[mcKeys[ki]]; break; }
+                }
+                var pct = Math.round((count / maxCount) * 100);
+                html += '<div style="margin-bottom:10px;">' +
+                    '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">' +
+                    '<span style="color:var(--text-primary);">' + esc(group) + '</span>' +
+                    '<span style="color:' + color + ';font-weight:600;">' + count + ' session' + (count!==1?'s':'') + '</span></div>' +
+                    '<div style="background:var(--border-color);border-radius:3px;height:4px;">' +
+                    '<div style="background:' + color + ';height:4px;border-radius:3px;width:' + pct + '%;transition:width 0.4s ease;"></div>' +
+                    '</div></div>';
             });
 
-            html += '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text3);">Exercise Maxes</h3>';
+            html += '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text-muted);">Exercise Maxes</h3>';
 
             Object.values(allExercises).sort(function(a, b) { return b.maxWeight - a.maxWeight; }).forEach(function(ex) {
                 var recentDate = ex.entries[ex.entries.length - 1] && ex.entries[ex.entries.length - 1].date;
                 html += '<div class="exercise-history">' +
                     '<h4>' + esc(ex.name) + '</h4>' +
                     '<div style="font-size:18px; font-weight:700; color:var(--accent); margin-bottom:8px;">' + esc(formatWeight(ex.maxWeight)) + '</div>' +
-                    '<div style="font-size:12px; color:var(--text3);">Last logged: ' + (recentDate ? esc(localDateStr(recentDate)) : 'unknown') + '</div>' +
+                    '<div style="font-size:12px; color:var(--text-muted);">Last logged: ' + (recentDate ? esc(localDateStr(recentDate)) : 'unknown') + '</div>' +
                     '</div>';
             });
 
@@ -1659,6 +1686,9 @@
         // ─── INITIALIZE ────────────────────────────────────────────────────────────
         // Fix 9: set today's date using local time
         document.getElementById('workoutDate').value = todayISO();
+
+        // v3.1: render theme picker
+        renderThemePicker();
 
         // Show split selector on initial load
         renderSplitCards();
