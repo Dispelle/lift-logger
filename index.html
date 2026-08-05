@@ -638,7 +638,7 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.1 · Aug 5, 2026</p>
+                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.2 · Aug 5, 2026</p>
                 </div>
                 <!-- v3.1: theme picker + reload -->
                 <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
@@ -1168,6 +1168,22 @@
         }
 
         // ─── UPDATE STATS ──────────────────────────────────────────────────────────
+        // Normalize muscle group name for display/grouping
+        function normalizeMuscleGroup(mg) {
+            if (!mg) return 'UNKNOWN';
+            var clean = mg.replace(/[^\x00-\x7F\u0080-\u024F]/g, '').trim().toUpperCase();
+            var keywords = ['BACK','CHEST','LEGS','SHOULDERS','ARMS','PUSH','PULL','BICEP','TRICEP','GLUTES','ABS','CARDIO'];
+            for (var k = 0; k < keywords.length; k++) {
+                if (clean.indexOf(keywords[k]) !== -1) {
+                    if (clean.indexOf('RECOVERY') !== -1 || clean.indexOf('BACKWARDS') !== -1 || clean.indexOf('REVERSE') !== -1) {
+                        return keywords[k] + ' (RECOVERY)';
+                    }
+                    return keywords[k];
+                }
+            }
+            return 'UNKNOWN';
+        }
+
         function updateStats() {
             var workouts = loadData();
             var container = document.getElementById('stats-container');
@@ -1184,7 +1200,8 @@
             var muscleGroups = {};
 
             workouts.forEach(function(workout) {
-                muscleGroups[workout.muscleGroup] = (muscleGroups[workout.muscleGroup] || 0) + 1;
+                var mgNorm = normalizeMuscleGroup(workout.muscleGroup);
+                muscleGroups[mgNorm] = (muscleGroups[mgNorm] || 0) + 1;
                 workout.exercises.forEach(function(ex) {
                     var canonical = getCanonicalName(ex.name, workouts);
                     var key = normalizeName(canonical);
