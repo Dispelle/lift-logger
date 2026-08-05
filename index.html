@@ -638,7 +638,7 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.2 · Aug 5, 2026</p>
+                    <p style="font-size:10px; color:var(--text-muted); margin-top:4px;">v3.3 · Aug 5, 2026</p>
                 </div>
                 <!-- v3.1: theme picker + reload -->
                 <div style="display:flex; gap:4px; margin-top:4px; align-items:center;">
@@ -1101,6 +1101,34 @@
             updateStats();
         }
 
+        // Get the most recent prior session of the same muscle group
+        function getPreviousSession(muscleGroup, excludeId) {
+            var workouts = loadData();
+            var targetMG = normalizeMuscleGroup(muscleGroup);
+            var best = null;
+            for (var i = workouts.length - 1; i >= 0; i--) {
+                var w = workouts[i];
+                if (w.id === excludeId) continue;
+                if (normalizeMuscleGroup(w.muscleGroup) === targetMG) {
+                    if (!best || w.date > best.date) best = w;
+                }
+            }
+            return best;
+        }
+
+        // Find a specific exercise within a session
+        function getExFromSession(session, exerciseName) {
+            if (!session) return null;
+            var targetNorm = normalizeName(exerciseName);
+            for (var i = 0; i < session.exercises.length; i++) {
+                var ex = session.exercises[i];
+                if (normalizeName(ex.name) === targetNorm || exerciseSimilarity(exerciseName, ex.name) >= 0.6) {
+                    return ex;
+                }
+            }
+            return null;
+        }
+
         // ─── DISPLAY HISTORY ───────────────────────────────────────────────────────
         function displayHistory() {
             var workouts = loadData();
@@ -1111,18 +1139,23 @@
                 return;
             }
 
-            // Fix 3: use workout.id for delete, not array index on reversed array
             var reversed = workouts.slice().reverse();
 
             container.innerHTML = reversed.map(function(workout) {
+                // Get the previous session of the SAME muscle group for comparison
+                var prevSession = getPreviousSession(workout.muscleGroup, workout.id);
+                var prevSessionLabel = prevSession ? 'vs ' + normalizeMuscleGroup(workout.muscleGroup) + ' ' + localDateStr(prevSession.date) : '';
+
                 var exercisesHtml = workout.exercises.map(function(ex) {
-                    // Fix 4: pass workout.id as second arg
-                    var previous = getPreviousBest(ex.name, workout.id);
-                    var isPR = !previous || ex.weight > previous.weight;
-                    var comparison = previous && ex.weight !== previous.weight
-                        ? (ex.weight > previous.weight ? '↑' : '↓') + ' vs ' + formatWeight(previous.weight) + ' (' + localDateStr(previous.date) + ')'
+                    // Compare to same exercise in previous same-muscle-group session
+                    var prevEx = getExFromSession(prevSession, ex.name);
+                    var isPR = prevEx ? ex.weight > prevEx.weight : false;
+                    var comparison = prevEx
+                        ? (ex.weight > prevEx.weight ? '↑' : ex.weight < prevEx.weight ? '↓' : '=') +
+                          ' vs ' + esc(prevEx.weightRaw ? prevEx.weightRaw : formatWeight(prevEx.weight)) +
+                          ' (' + prevSessionLabel + ')'
                         : '';
-                    var compClass = (previous && ex.weight > previous.weight) ? 'green' : 'red';
+                    var compClass = prevEx ? (ex.weight > prevEx.weight ? 'green' : ex.weight < prevEx.weight ? 'red' : '') : '';
 
                     return '<div class="exercise-log">' +
                         '<div class="exercise-name">' + esc(ex.name) +
@@ -1248,7 +1281,8 @@
                     '</div></div>';
             });
 
-            html += '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text-muted);">Exercise Maxes</h3>';
+            html += '<h3 style="margin:20px 0 12px; font-size:14px; font-weight:700; text-transform:uppercase; color:var(--text-muted);">All-Time Records 🏆</h3>' +
+                '<p style="font-size:11px; color:var(--text-secondary); margin-bottom:12px;">Your best ever for each exercise. PRs in history compare to your previous session of the same type.</p>';
 
             Object.values(allExercises).sort(function(a, b) { return b.maxWeight - a.maxWeight; }).forEach(function(ex) {
                 var recentDate = ex.entries[ex.entries.length - 1] && ex.entries[ex.entries.length - 1].date;
