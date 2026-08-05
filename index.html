@@ -603,6 +603,53 @@
             font-size: 14px;
             margin-bottom: 12px;
         }
+
+        /* ── SPLIT QUICK-START ── */
+        .split-card {
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 12px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-left: 4px solid var(--split-color, #00ff88);
+            border-radius: 8px;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+        .split-card:hover { background: #222; transform: translateX(4px); }
+        .split-icon { font-size: 32px; }
+        .split-name { font-size: 20px; font-weight: 700; flex: 1; }
+        .split-sub { font-size: 12px; color: #888; }
+        .split-add {
+            width: 100%; padding: 14px; background: none; border: 1px dashed #444;
+            border-radius: 8px; color: #666; font-size: 14px; cursor: pointer; margin-top: 8px;
+        }
+        .split-add:hover { border-color: #00ff88; color: #00ff88; }
+        .split-add-form {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px;
+            padding: 16px; margin-top: 12px;
+        }
+        .split-add-form input {
+            margin-bottom: 8px;
+        }
+        .back-btn {
+            background: none; border: none; color: #888; font-size: 13px;
+            cursor: pointer; padding: 0 0 16px 0; display: block;
+        }
+        .back-btn:hover { color: #fff; }
+
+        /* ── PR BURST ANIMATION ── */
+        @keyframes prBurst {
+            0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            60%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+        }
     </style>
 </head>
 <body>
@@ -613,7 +660,7 @@
                 <div>
                     <h1>🏋️ Lift Logger</h1>
                     <p id="stats-summary"></p>
-                    <p style="font-size:10px; color:#444; margin-top:4px;">v2.0 · Aug 4, 2026</p>
+                    <p style="font-size:10px; color:#444; margin-top:4px;">v3.0 · Aug 5, 2026</p>
                 </div>
                 <!-- Fix 1: theme toggle + Fix 5: removed auto-reload, kept manual button -->
                 <div style="display:flex; gap:4px; margin-top:4px;">
@@ -635,25 +682,56 @@
 
         <!-- LOG WORKOUT TAB -->
         <div id="log" class="tab-content active">
-            <form onsubmit="logWorkout(event)">
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" id="workoutDate" required>
+            <!-- Split selector (shown when no workout type chosen) -->
+            <div id="split-selector" style="padding:20px 0;">
+                <p style="color:#666; font-size:13px; margin-bottom:20px; text-transform:uppercase; font-weight:600;">What are we doing today?</p>
+                <div id="split-cards"></div>
+                <button class="split-add" onclick="showAddSplitForm()">+ Add Workout Type</button>
+                <div id="split-add-form" style="display:none;" class="split-add-form">
+                    <label style="font-size:11px; color:#888;">NAME</label>
+                    <input type="text" id="new-split-name" placeholder="e.g., UPPER" style="margin-bottom:8px;">
+                    <label style="font-size:11px; color:#888;">ICON</label>
+                    <input type="text" id="new-split-icon" placeholder="e.g., ⚡" style="margin-bottom:8px; max-width:80px;">
+                    <label style="font-size:11px; color:#888;">KEYWORDS (comma separated)</label>
+                    <input type="text" id="new-split-keywords" placeholder="e.g., upper, press, row" style="margin-bottom:12px;">
+                    <button type="button" class="primary" onclick="addSplitType()" style="margin-bottom:8px;">Add</button>
+                    <button type="button" class="secondary" onclick="document.getElementById('split-add-form').style.display='none'">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Workout form (hidden until split chosen) -->
+            <div id="workout-form" style="display:none;">
+                <button class="back-btn" onclick="showSplitSelector()">&#8592; Change workout type</button>
+
+                <!-- Last session reference card -->
+                <div id="last-session-card" style="background:#111; border:1px solid #2a2a2a; border-radius:8px; padding:14px; margin-bottom:16px; display:none;">
+                    <div onclick="toggleLastSession()" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+                        <span id="last-session-title" style="font-size:12px; color:#888; font-weight:600; text-transform:uppercase;">&#128203; Last session</span>
+                        <span id="last-session-toggle" style="color:#666; font-size:14px;">&#9660;</span>
+                    </div>
+                    <div id="last-session-body" style="display:none; margin-top:12px;"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>Muscle Group</label>
-                    <input type="text" id="muscleGroup" placeholder="e.g., LEGS, CHEST, BACK" required>
-                </div>
+                <form onsubmit="logWorkout(event)">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="workoutDate" required>
+                    </div>
 
-                <div id="exercises-container"></div>
+                    <div class="form-group">
+                        <label>Muscle Group</label>
+                        <input type="text" id="muscleGroup" placeholder="e.g., LEGS, CHEST, BACK" required>
+                    </div>
 
-                <button type="button" class="secondary" onclick="addExerciseRow()">+ ADD EXERCISE</button>
+                    <div id="exercises-container"></div>
 
-                <div style="margin-top: 20px;">
-                    <button type="submit" class="primary">LOG WORKOUT</button>
-                </div>
-            </form>
+                    <button type="button" class="secondary" onclick="addExerciseRow()">+ ADD EXERCISE</button>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit" class="primary">LOG WORKOUT</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- HISTORY TAB -->
@@ -859,15 +937,84 @@
             container.appendChild(row);
         }
 
-        // ─── NORMALIZE EXERCISE NAME ───────────────────────────────────────────────
+        // ─── EXERCISE FUZZY MATCHING ────────────────────────────────────────────────
+        var EXERCISE_NOISE_WORDS = new Set([
+            'cable','machine','seated','standing','incline','decline','overhead',
+            'close','wide','narrow','single','double','alternate','alternating',
+            'the','a','an','at','with','and','w','band','green','red','bw','lb','lbs'
+        ]);
+
+        var EXERCISE_ALIASES = {
+            'pushdown': 'tricep rope',
+            'rope pushdown': 'tricep rope',
+            'tricep pushdown': 'tricep rope',
+            'tricep extension': 'tricep rope',
+            'tricep press': 'tricep rope',
+            '321 lat raise': 'lat raise',
+            '321 lateral raise': 'lat raise',
+            'lateral raise': 'lat raise',
+            'extention': 'extension',
+            'naut': 'nautilus',
+            'db': 'dumbbell',
+            'rdl': 'romanian deadlift',
+            'pulldown': 'lat pulldown',
+            'face pull': 'rope face pull',
+            'hammer': 'hammer curl',
+            'preacher': 'preacher curl',
+            'ez bar': 'ez curl',
+            'v bar': 'vbar',
+            'vbar row': 'vbar row',
+            'vbar cable': 'vbar row',
+            'close leg press': 'leg press close',
+            'close foot leg press': 'leg press close',
+            'quad press': 'leg press'
+        };
+
         function normalizeName(name) {
             if (!name || typeof name !== 'string') return '';
             var n = name.trim().toLowerCase().replace(/\s+/g, ' ');
+            // Apply alias table
+            for (var alias in EXERCISE_ALIASES) {
+                if (EXERCISE_ALIASES.hasOwnProperty(alias)) {
+                    if (n === alias || n.includes(alias)) {
+                        n = n.replace(alias, EXERCISE_ALIASES[alias]);
+                    }
+                }
+            }
+            // Singularize trailing s on words >4 chars
             n = n.replace(/\b([a-z]{4,})s\b/g, '$1');
-            return n;
+            return n.trim();
         }
 
-        // ─── FIX 4: getPreviousBest (no early return, excludes self by id) ────────
+        function exerciseSimilarity(a, b) {
+            var wordsOf = function(str) {
+                var words = normalizeName(str).split(' ').filter(function(w) {
+                    return w.length > 1 && !EXERCISE_NOISE_WORDS.has(w);
+                });
+                return new Set(words);
+            };
+            var wa = wordsOf(a);
+            var wb = wordsOf(b);
+            var intersection = 0;
+            wa.forEach(function(w) { if (wb.has(w)) intersection++; });
+            var union = new Set([...wa, ...wb]);
+            return union.size === 0 ? 0 : intersection / union.size;
+        }
+
+        function getCanonicalName(name, workouts) {
+            var norm = normalizeName(name);
+            for (var i = 0; i < workouts.length; i++) {
+                var w = workouts[i];
+                for (var j = 0; j < w.exercises.length; j++) {
+                    var ex = w.exercises[j];
+                    if (normalizeName(ex.name) === norm) return ex.name;
+                    if (exerciseSimilarity(name, ex.name) >= 0.6) return ex.name;
+                }
+            }
+            return name;
+        }
+
+        // ─── FIX 4: getPreviousBest (no early return, excludes self by id, fuzzy match) ──
         function getPreviousBest(exerciseName, excludeWorkoutId) {
             var workouts = loadData();
             var targetNorm = normalizeName(exerciseName);
@@ -878,7 +1025,7 @@
                 if (workout.id === excludeWorkoutId) continue;
                 for (var j = 0; j < workout.exercises.length; j++) {
                     var ex = workout.exercises[j];
-                    if (normalizeName(ex.name) === targetNorm) {
+                    if (normalizeName(ex.name) === targetNorm || exerciseSimilarity(ex.name, exerciseName) >= 0.6) {
                         if (best === null || ex.weight > best) {
                             best = ex.weight;
                             bestDate = workout.date;
@@ -923,14 +1070,27 @@
             workouts.push(newWorkout);
             saveData(workouts);
 
-            // Reset form
+            // Fire PR animations
+            var prDelay = 0;
+            exercises.forEach(function(ex) {
+                var prev = getPreviousBest(ex.name, newWorkout.id);
+                if (!prev || ex.weight > prev.weight) {
+                    (function(exName, delay) {
+                        setTimeout(function() { firePRAnimation(exName); }, delay);
+                    })(ex.name, prDelay);
+                    prDelay += 2000;
+                }
+            });
+
+            // Reset form and go back to split selector
             document.getElementById('muscleGroup').value = '';
             document.getElementById('exercises-container').innerHTML = '';
             _rowCounter = 0;
-            addExerciseRow();
             // Fix 9: set date with local time
             document.getElementById('workoutDate').value = todayISO();
 
+            currentSplitType = null;
+            showSplitSelector();
             alert('Workout logged!');
             displayHistory();
             updateStats();
@@ -966,8 +1126,8 @@
                         '<div class="exercise-stats">' +
                         esc(ex.weightRaw ? ex.weightRaw : formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps || 0)) +
                         (ex.sets > 1 ? ' × ' + esc(String(ex.sets)) : '') +
-                        (ex.notes ? '<br><em>' + esc(ex.notes) + '</em>' : '') +
                         '</div>' +
+                        (ex.notes ? '<div style="font-size:11px; color:#666; margin-top:4px; font-style:italic;">' + esc(ex.notes) + '</div>' : '') +
                         (comparison ? '<div class="comparison ' + compClass + '">' + esc(comparison) + '</div>' : '') +
                         '</div>';
                 }).join('');
@@ -1021,9 +1181,10 @@
             workouts.forEach(function(workout) {
                 muscleGroups[workout.muscleGroup] = (muscleGroups[workout.muscleGroup] || 0) + 1;
                 workout.exercises.forEach(function(ex) {
-                    var key = normalizeName(ex.name);
+                    var canonical = getCanonicalName(ex.name, workouts);
+                    var key = normalizeName(canonical);
                     if (!allExercises[key]) {
-                        allExercises[key] = { name: ex.name, maxWeight: ex.weight, entries: [] };
+                        allExercises[key] = { name: canonical, maxWeight: ex.weight, entries: [] };
                     }
                     allExercises[key].maxWeight = Math.max(allExercises[key].maxWeight, ex.weight);
                     allExercises[key].entries.push({ date: workout.date, weight: ex.weight, reps: ex.reps });
@@ -1255,6 +1416,7 @@
             if (tabName === 'history') displayHistory();
             else if (tabName === 'stats') updateStats();
             else if (tabName === 'data') updateDataTab();
+            else if (tabName === 'log') { renderSplitCards(); }
         }
 
         // ─── FIX 13: DATA TAB ─────────────────────────────────────────────────────
@@ -1306,6 +1468,187 @@
             reader.readAsText(file);
         }
 
+        // ─── SPLIT QUICK-START ───────────────────────────────────────────────────────
+        var DEFAULT_SPLIT = [
+            { name: 'PUSH',  icon: '💪', keywords: ['chest','push','shoulders','tricep','bicep'], color: '#ff6b35' },
+            { name: 'LEGS',  icon: '🦵', keywords: ['legs','lower','quad','hamstring','glute','calf'], color: '#4a9eff' },
+            { name: 'PULL',  icon: '🏋️', keywords: ['back','pull','lat','row','rear'], color: '#00ff88' },
+            { name: 'OTHER', icon: '⚡', keywords: [], color: '#888' }
+        ];
+
+        var currentSplitType = null;
+
+        function getSplit() {
+            try {
+                var saved = localStorage.getItem('liftLoggerSplit');
+                if (saved) return JSON.parse(saved);
+            } catch(e) {}
+            return DEFAULT_SPLIT;
+        }
+
+        function saveSplit(split) {
+            localStorage.setItem('liftLoggerSplit', JSON.stringify(split));
+        }
+
+        function getDaysAgo(dateStr) {
+            if (!dateStr) return null;
+            var parts = dateStr.split('-');
+            var d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+            return Math.floor((Date.now() - d.getTime()) / 86400000);
+        }
+
+        function findLastWorkout(splitName) {
+            var split = getSplit().find(function(s) { return s.name === splitName; });
+            if (!split) return null;
+            var workouts = loadData();
+            for (var i = workouts.length - 1; i >= 0; i--) {
+                var w = workouts[i];
+                var mg = (w.muscleGroup || '').toLowerCase();
+                if (mg.includes(splitName.toLowerCase())) return w;
+                if (split.keywords.some(function(k) { return mg.includes(k); })) return w;
+            }
+            return null;
+        }
+
+        function renderSplitCards() {
+            var container = document.getElementById('split-cards');
+            if (!container) return;
+            var split = getSplit();
+            container.innerHTML = split.map(function(s) {
+                var lastW = findLastWorkout(s.name);
+                var sub = '';
+                if (lastW) {
+                    var days = getDaysAgo(lastW.date);
+                    var exCount = lastW.exercises.length;
+                    sub = 'Last: ' + (days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago') +
+                          ' · ' + exCount + ' exercise' + (exCount !== 1 ? 's' : '');
+                } else {
+                    sub = 'No sessions logged yet';
+                }
+                return '<button class="split-card" style="--split-color:' + esc(s.color) + '" onclick="startWorkout(' + JSON.stringify(s.name) + ')">' +
+                    '<span class="split-icon">' + esc(s.icon) + '</span>' +
+                    '<span class="split-name">' + esc(s.name) + '</span>' +
+                    '<span class="split-sub">' + esc(sub) + '</span>' +
+                    '</button>';
+            }).join('');
+        }
+
+        function startWorkout(splitName) {
+            currentSplitType = splitName;
+            document.getElementById('split-selector').style.display = 'none';
+            document.getElementById('workout-form').style.display = 'block';
+            document.getElementById('muscleGroup').value = splitName;
+            document.getElementById('workoutDate').value = todayISO();
+            document.getElementById('exercises-container').innerHTML = '';
+            _rowCounter = 0;
+
+            var lastW = findLastWorkout(splitName);
+            if (lastW) {
+                var splitObj = getSplit().find(function(s) { return s.name === splitName; }) || { icon: '' };
+                var days = getDaysAgo(lastW.date);
+                document.getElementById('last-session-title').innerHTML =
+                    '&#128203; Last ' + esc(splitObj.icon + ' ' + splitName) + ' — ' +
+                    esc(localDateStr(lastW.date)) + ' · ' + esc(String(lastW.exercises.length)) + ' exercises';
+                var bodyHtml = lastW.exercises.map(function(ex) {
+                    return '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #1a1a1a;">' +
+                        '<span style="color:#aaa;">' + esc(ex.name) + '</span>' +
+                        '<span style="color:#666;">' + esc(ex.weightRaw || formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps)) + '</span>' +
+                        '</div>';
+                }).join('');
+                document.getElementById('last-session-body').innerHTML = bodyHtml;
+                document.getElementById('last-session-card').style.display = 'block';
+
+                lastW.exercises.forEach(function(ex) {
+                    var cont = document.getElementById('exercises-container');
+                    var rowId = 'exercise-' + (++_rowCounter);
+                    var row = document.createElement('div');
+                    row.className = 'exercise-row';
+                    row.id = rowId;
+                    row.innerHTML =
+                        '<input type="text" class="exercise-name" placeholder="Exercise name" value="' + esc(ex.name) + '" required>' +
+                        '<input type="text" class="exercise-weight" placeholder="' + esc(ex.weightRaw || formatWeight(ex.weight)) + '" required>' +
+                        '<input type="number" class="exercise-reps" placeholder="' + esc(String(ex.reps || 0)) + '" min="1" required>' +
+                        '<input type="number" class="exercise-sets" placeholder="Sets (default 1)" min="1" value="1">' +
+                        '<textarea class="exercise-notes" placeholder="Notes (optional)" style="height:60px;"></textarea>' +
+                        '<button type="button" class="remove-exercise" onclick="document.getElementById(\'' + rowId + '\').remove()">Remove</button>';
+                    cont.appendChild(row);
+                });
+            } else {
+                document.getElementById('last-session-card').style.display = 'none';
+                addExerciseRow();
+            }
+        }
+
+        function showSplitSelector() {
+            currentSplitType = null;
+            document.getElementById('split-selector').style.display = 'block';
+            document.getElementById('workout-form').style.display = 'none';
+            document.getElementById('last-session-card').style.display = 'none';
+            renderSplitCards();
+        }
+
+        function toggleLastSession() {
+            var body = document.getElementById('last-session-body');
+            var toggle = document.getElementById('last-session-toggle');
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                toggle.innerHTML = '&#9650;';
+            } else {
+                body.style.display = 'none';
+                toggle.innerHTML = '&#9660;';
+            }
+        }
+
+        function showAddSplitForm() {
+            document.getElementById('split-add-form').style.display = 'block';
+        }
+
+        function addSplitType() {
+            var name = (document.getElementById('new-split-name').value || '').trim().toUpperCase();
+            var icon = (document.getElementById('new-split-icon').value || '').trim() || '⚡';
+            var kwStr = (document.getElementById('new-split-keywords').value || '').trim();
+            if (!name) { alert('Enter a name for the workout type'); return; }
+            var keywords = kwStr ? kwStr.split(',').map(function(k) { return k.trim().toLowerCase(); }).filter(Boolean) : [];
+            var split = getSplit();
+            split.push({ name: name, icon: icon, keywords: keywords, color: '#888' });
+            saveSplit(split);
+            document.getElementById('new-split-name').value = '';
+            document.getElementById('new-split-icon').value = '';
+            document.getElementById('new-split-keywords').value = '';
+            document.getElementById('split-add-form').style.display = 'none';
+            renderSplitCards();
+        }
+
+        // ─── PR BURST ANIMATION ─────────────────────────────────────────────────────────
+        function firePRAnimation(exerciseName) {
+            var burst = document.createElement('div');
+            burst.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;pointer-events:none;text-align:center;animation:prBurst 1.8s ease-out forwards;';
+            burst.innerHTML =
+                '<div style="font-size:48px;margin-bottom:8px;">🔥</div>' +
+                '<div style="font-size:22px;font-weight:800;color:#00ff44;text-shadow:0 0 20px #00ff44;letter-spacing:2px;">NEW PR</div>' +
+                '<div style="font-size:14px;color:#aaa;margin-top:6px;">' + esc(exerciseName) + '</div>';
+            document.body.appendChild(burst);
+            setTimeout(function() { if (burst.parentNode) burst.remove(); }, 1800);
+
+            for (var i = 0; i < 12; i++) {
+                (function(idx) {
+                    var p = document.createElement('div');
+                    p.style.cssText = 'position:fixed;top:50%;left:50%;width:8px;height:8px;border-radius:50%;background:#00ff44;z-index:9998;pointer-events:none;';
+                    document.body.appendChild(p);
+                    var angle = (idx / 12) * 360;
+                    var dist = 80 + Math.random() * 60;
+                    var rad = (angle * Math.PI) / 180;
+                    var tx = Math.cos(rad) * dist;
+                    var ty = Math.sin(rad) * dist;
+                    p.animate([
+                        { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+                        { transform: 'translate(calc(-50% + ' + tx + 'px), calc(-50% + ' + ty + 'px)) scale(0)', opacity: 0 }
+                    ], { duration: 1200, easing: 'ease-out', fill: 'forwards' });
+                    setTimeout(function() { if (p.parentNode) p.remove(); }, 1200);
+                })(i);
+            }
+        }
+
         // ─── FIX 14: CROSS-TAB SYNC ───────────────────────────────────────────────
         window.addEventListener('storage', function(e) {
             if (e.key === STORAGE_KEY) {
@@ -1317,7 +1660,8 @@
         // Fix 9: set today's date using local time
         document.getElementById('workoutDate').value = todayISO();
 
-        addExerciseRow();
+        // Show split selector on initial load
+        renderSplitCards();
         try { displayHistory(); } catch(e) { console.error('History error:', e); }
         try { updateStats(); } catch(e) { console.error('Stats error:', e); }
     </script>
