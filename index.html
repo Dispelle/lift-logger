@@ -1317,14 +1317,18 @@
             }
 
             function extractMuscleGroup(line) {
-                // Strip emojis and normalize
-                var stripped = line.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|[\u{FE00}-\u{FEFF}]|\uFE0F|[\u{1F900}-\u{1F9FF}]/gu, '').trim();
-                var upper = stripped.toUpperCase();
-                var keywords = ['BACK','CHEST','LEGS','SHOULDERS','ARMS','PUSH','PULL','BICEP','TRICEP','GLUTES','ABS','CARDIO','FULL BODY'];
+                // Rule out lines that are clearly exercises (have weights/reps)
+                if (/^\d/.test(line)) return null;           // starts with digit = date/weight
+                if (/\d+\s*x\s*\d+/i.test(line)) return null; // NxM pattern = exercise reps
+                if (/\d+\.?\d*p/i.test(line)) return null;   // plate notation like 3p
+                if (/\d{3,}/.test(line)) return null;          // 3+ digit number = weight like 220
+
+                var upper = line.toUpperCase();
+                var keywords = ['BACK','CHEST','LEGS','SHOULDERS','ARMS','PUSH','PULL','BICEP','TRICEP','GLUTES','ABS','CARDIO'];
                 for (var k = 0; k < keywords.length; k++) {
                     var kw = keywords[k];
-                    if (upper.includes(kw)) {
-                        if (upper.includes('ACTIVE RECOVERY') || upper.includes('BACKWARDS') || upper.includes('LIGHTER') || upper.includes('RECOVERY')) {
+                    if (upper.indexOf(kw) !== -1) {
+                        if (upper.indexOf('RECOVERY') !== -1 || upper.indexOf('BACKWARDS') !== -1) {
                             return kw + ' (recovery)';
                         }
                         return kw;
@@ -1370,8 +1374,8 @@
 
         // ─── PARSE EXERCISE LINE ───────────────────────────────────────────────────
         function parseExerciseLine(line) {
-            // Strip emojis
-            line = line.replace(/[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27FF}]|[\u{FE00}-\u{FEFF}]|\uFE0F|[\u{1F900}-\u{1F9FF}]/gu, '').trim();
+            // Strip non-ASCII characters (emojis etc) using a safe compatible regex
+            line = line.replace(/[^\x00-\x7F\u0080-\u024F]/g, '').trim();
 
             // Skip pure description lines (no weight pattern at all)
             if (/^(3 sets|[23] sets|bw$|active recovery|incline sit-up|leg raises?\s*\d|incline sit)/i.test(line)) return null;
