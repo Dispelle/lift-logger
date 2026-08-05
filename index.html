@@ -1159,7 +1159,7 @@
 
                     return '<div class="exercise-log">' +
                         '<div class="exercise-name">' + esc(ex.name) +
-                        (isPR && previous ? ' <span class="pr-badge">🔥 PR</span>' : '') +
+                        (isPR ? ' <span class="pr-badge">🔥 PR</span>' : '') +
                         '</div>' +
                         '<div class="exercise-stats">' +
                         esc(ex.weightRaw ? ex.weightRaw : formatWeight(ex.weight)) + ' × ' + esc(String(ex.reps || 0)) +
